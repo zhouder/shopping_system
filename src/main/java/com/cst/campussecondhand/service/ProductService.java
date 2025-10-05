@@ -34,7 +34,8 @@ public class ProductService {
     @Autowired
     private UserRepository userRepository;
 
-    public static final String UPLOAD_DIR = "src/main/resources/static/uploads/"; // 上传的图片存储地址
+    // 使用 System.getProperty("user.home") 获取当前用户的主目录
+    public static final String UPLOAD_DIR = System.getProperty("user.home") + "/app-uploads/"; // 上传的图片存储地址
 
 
     public Product createProduct(Product product, Integer sellerId, MultipartFile[] files) {
