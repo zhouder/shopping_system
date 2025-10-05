@@ -24,4 +24,8 @@ public class ChatMessage {
     private String content;
 
     private Date timestamp;
+
+    // 新增字段：标记消息是否已读，默认为 false (未读)
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead = false;
 }

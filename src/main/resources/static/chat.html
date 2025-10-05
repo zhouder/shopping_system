@@ -24,11 +24,11 @@
         .back-to-home:hover { transform: scale(1.1); }
         .page-container {
             max-width: 1100px;
-            margin: 100px auto 20px auto;
+            margin: 75px auto 20px auto;
         }
         .chat-container {
             display: flex;
-            height: 75vh;
+            height: 80vh;
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.08);
@@ -38,7 +38,7 @@
         .sidebar-header { padding: 20px; border-bottom: 1px solid #eee; }
         .sidebar-header h2 { margin: 0; font-size: 1.4rem; }
         .conversation-list { overflow-y: auto; flex-grow: 1; }
-        .conversation { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f7f7f7; }
+        .conversation {position: relative; /* 新增 */ display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f7f7f7; }
         .conversation:hover, .conversation.active { background-color: #f5f5f5; }
         .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; }
         .conv-details .name { font-weight: bold; }
@@ -52,6 +52,16 @@
         .chat-input { display: flex; padding: 20px; border-top: 1px solid #eee; background-color: #fff; }
         .chat-input input { flex-grow: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 15px; outline: none; font-size: 1rem; }
         .chat-input button { border: none; background-color: #007bff; color: white; border-radius: 50%; width: 40px; height: 40px; margin-left: 10px; cursor: pointer; font-size: 1rem; }
+        /* 新增：对话列表的红点样式 */
+        .conversation-dot {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 10px;
+            height: 10px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -127,42 +137,52 @@
                 const convEl = document.createElement('div');
                 convEl.className = 'conversation';
                 convEl.dataset.userId = user.id;
-                convEl.innerHTML = `<img src="${user.avatarUrl || generateAvatar(user.nickname, user.avatarBgColor)}" alt="avatar" class="avatar"><div class="conv-details"><div class="name">${user.nickname}</div></div>`;
-                convEl.addEventListener('click', () => loadChatHistory(user));
+                // 根据 hasUnreadMessages 字段添加红点
+                const dotHtml = user.hasUnreadMessages ? '<span class="conversation-dot"></span>' : '';
+                convEl.innerHTML = `
+                    <img src="${user.avatarUrl || generateAvatar(user.nickname, user.avatarBgColor)}" alt="avatar" class="avatar">
+                    <div class="conv-details"><div class="name">${user.nickname}</div></div>
+                    ${dotHtml}
+                `;
+                convEl.addEventListener('click', () => loadChatHistory(user)); // 事件监听不变
                 conversationListEl.appendChild(convEl);
             }
         }
 
         async function loadInitialConversations() {
-            try { // --- 新增 try ---
+            try {
                 const response = await fetch('/api/conversations');
-                if (!response.ok) { // --- 新增错误检查 ---
+                if (!response.ok) {
                     throw new Error('Failed to load conversations');
                 }
                 const partners = await response.json();
+                // 清空旧数据，防止重复
+                conversationPartners.clear();
                 partners.forEach(p => conversationPartners.set(p.id, p));
+
+                renderConversationList(); // 使用新数据重新渲染列表
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const recipientId = parseInt(urlParams.get('userId'), 10);
 
-                if (recipientId && !conversationPartners.has(recipientId)) {
-                    try {
-                        const userResponse = await fetch(`/api/users/${recipientId}`);
-                        if (userResponse.ok) {
-                            const newUser = await userResponse.json();
-                            conversationPartners.set(newUser.id, newUser);
-                            renderConversationList();
-                            await loadChatHistory(newUser);
-                        }
-                    } catch (e) { console.error("Failed to fetch new user info"); }
-                } else {
-                    renderConversationList();
-                    if (recipientId) {
+                if (recipientId) {
+                    // 如果是从URL进入的聊天，检查伙伴是否存在
+                    if (!conversationPartners.has(recipientId)) {
+                        try {
+                            const userResponse = await fetch(`/api/users/${recipientId}`);
+                            if (userResponse.ok) {
+                                const newUser = await userResponse.json();
+                                conversationPartners.set(newUser.id, newUser);
+                                renderConversationList(); // 再次渲染以加入新用户
+                                await loadChatHistory(newUser);
+                            }
+                        } catch (e) { console.error("Failed to fetch new user info"); }
+                    } else {
                         const targetUser = conversationPartners.get(recipientId);
                         if(targetUser) await loadChatHistory(targetUser);
                     }
                 }
-            } catch (error) { // --- 新增 catch ---
+            } catch (error) {
                 console.error(error);
                 conversationListEl.innerHTML = '<p style="text-align: center; color: #dc3545; margin-top: 20px;">加载会话失败，请刷新重试。</p>';
             }
@@ -176,7 +196,23 @@
             activeRecipient = recipient;
             chatWithNameEl.textContent = `与 ${recipient.nickname} 的对话`;
             messagesAreaEl.innerHTML = '';
-            chatInputAreaEl.style.display = 'flex';
+            chatInputAreaEl.style.display = 'flex'; // <<<<<<< 就是这一行，把它加回来
+
+            // 新增：如果当前对话有未读消息，则调用接口标记为已读
+            const partnerData = conversationPartners.get(recipient.id);
+            if (partnerData && partnerData.hasUnreadMessages) {
+                // 1. 立即移除前端的红点
+                const convEl = document.querySelector(`.conversation[data-user-id='${recipient.id}']`);
+                const dot = convEl.querySelector('.conversation-dot');
+                if (dot) dot.remove();
+
+                // 2. 更新本地数据状态
+                partnerData.hasUnreadMessages = false;
+
+                // 3. 通知后端标记为已读
+                fetch(`/api/messages/read/${recipient.id}`, { method: 'POST' })
+                    .catch(err => console.error("标记已读失败:", err));
+            }
 
             const response = await fetch(`/api/messages/${recipient.id}`);
             const messages = await response.json();
@@ -219,11 +255,20 @@
             const message = JSON.parse(payload.body);
             if (activeRecipient && message.sender.id === activeRecipient.id) {
                 displayMessage(message, true);
+                // 如果正在当前聊天窗口，收到消息后应该立刻标记为已读
+                fetch(`/api/messages/read/${activeRecipient.id}`, { method: 'POST' });
             } else {
+                // 如果不在当前聊天窗口，弹窗提示并刷新对话列表以显示红点
                 if(!conversationPartners.has(message.sender.id)){
-                    conversationPartners.set(message.sender.id, message.sender);
-                    renderConversationList();
+                    // 这是一个全新的会话
+                    const newUser = message.sender;
+                    newUser.hasUnreadMessages = true;
+                    conversationPartners.set(newUser.id, newUser);
+                } else {
+                    // 这是一个已有会话
+                    conversationPartners.get(message.sender.id).hasUnreadMessages = true;
                 }
+                renderConversationList(); // 重新渲染列表以显示红点
                 alert(`收到来自 ${message.sender.nickname} 的新消息！`);
             }
         }

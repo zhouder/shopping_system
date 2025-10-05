@@ -6,13 +6,16 @@ import com.cst.campussecondhand.repository.ChatMessageRepository;
 import com.cst.campussecondhand.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Collections;
@@ -75,35 +78,59 @@ public class ChatController {
         return ResponseEntity.ok(response);
     }
 
-    // 修改：获取当前用户的所有对话列表
+    // (改造) 获取当前用户的所有对话列表，并加入是否有未读消息的标记
     @GetMapping("/api/conversations")
     @ResponseBody
     public ResponseEntity<?> getConversations(HttpSession session) {
         User currentUser = (User) session.getAttribute("loggedInUser");
         if (currentUser == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        // 1. 调用新的方法获取伙伴ID列表
         List<Integer> partnerIds = chatMessageRepository.findConversationPartnerIds(currentUser.getId());
         if (partnerIds.isEmpty()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
-
-        // 2. 根据ID列表一次性查询所有 User 对象
         List<User> partners = userRepository.findAllById(partnerIds);
 
-        // 3. 将 User 列表转换为安全的 Map 列表
         List<Map<String, Object>> response = partners.stream().map(user -> {
             Map<String, Object> userMap = new java.util.HashMap<>();
             userMap.put("id", user.getId());
             userMap.put("nickname", user.getNickname());
             userMap.put("avatarUrl", user.getAvatarUrl());
             userMap.put("avatarBgColor", user.getAvatarBgColor());
+            // 检查与该伙伴的对话中是否有未读消息
+            boolean hasUnread = chatMessageRepository.existsByRecipientIdAndSenderIdAndIsReadFalse(currentUser.getId(), user.getId());
+            userMap.put("hasUnreadMessages", hasUnread);
             return userMap;
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
+    }
+
+    // 新增：获取当前用户的所有未读消息总数
+    @GetMapping("/api/messages/unread-count")
+    @ResponseBody
+    public ResponseEntity<?> getUnreadMessageCount(HttpSession session) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "用户未登录"));
+        }
+        long count = chatMessageRepository.countByRecipientIdAndIsReadFalse(currentUser.getId());
+        return ResponseEntity.ok(Map.of("unreadCount", count));
+    }
+
+    // 新增：将来自特定用户的消息标记为已读
+    @PostMapping("/api/messages/read/{partnerId}")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<?> markMessagesAsRead(@PathVariable Integer partnerId, HttpSession session) {
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        // 调用我们新加的方法，参数分别是 (发送者ID, 接收者ID)
+        chatMessageRepository.markMessagesAsRead(partnerId, currentUser.getId());
+        return ResponseEntity.ok(Map.of("message", "已标记为已读"));
     }
 
 
