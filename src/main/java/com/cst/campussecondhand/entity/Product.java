@@ -37,8 +37,8 @@ public class Product {
     private String location; // 卖家住址
 
     @Column(length = 50)
-    private String category; // 商品品类
+    private String category;  // 分类编号，对应 category 表的 code
 
-    @Column(name = "favorite_count", nullable = false)
-    private int favoriteCount = 0; // 商品被收藏的数量
+    @Column(name = "sales", nullable = false)
+    private int sales = 0; // 商品销量
 }

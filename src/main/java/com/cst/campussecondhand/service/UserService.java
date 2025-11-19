@@ -40,6 +40,26 @@ public class UserService {
         String[] colors = {"#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722"};
         String bgColor = colors[(int) Math.floor(Math.random() * colors.length)];
         user.setAvatarBgColor(bgColor);
+        // 1）会员编号：简单用时间戳生成一个，不和业务强耦合就行
+        if (user.getMemberNo() == null || user.getMemberNo().isEmpty()) {
+            String memberNo = "M" + System.currentTimeMillis();
+            user.setMemberNo(memberNo);
+        }
+
+        // 2）会员姓名：如果前端没单独传，就先用昵称顶上
+        if (user.getRealName() == null || user.getRealName().isEmpty()) {
+            user.setRealName(user.getNickname());
+        }
+
+        // 3）会员地址：先给成空字符串，后面在“个人资料”页面让用户填写
+        if (user.getAddress() == null) {
+            user.setAddress("");
+        }
+
+        // ===== 新增：默认角色 =====
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("MEMBER");
+        }
         return userRepository.save(user);
     }
 

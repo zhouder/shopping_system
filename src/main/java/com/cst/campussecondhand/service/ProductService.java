@@ -91,7 +91,7 @@ public class ProductService {
         Sort sort = switch (sortBy) {
             case "price-asc" -> Sort.by(Sort.Direction.ASC, "price");
             case "price-desc" -> Sort.by(Sort.Direction.DESC, "price");
-            case "favorites" -> Sort.by(Sort.Direction.DESC, "favoriteCount"); // 新增：按收藏数降序
+            case "sales" -> Sort.by(Sort.Direction.DESC, "sales"); // 按销量降序
             default -> Sort.by(Sort.Direction.DESC, "createdTime"); // 默认按最新发布
         };
 

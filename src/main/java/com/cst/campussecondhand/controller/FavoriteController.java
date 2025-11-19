@@ -34,15 +34,11 @@ public class FavoriteController {
 
         try {
             boolean isFavorited = favoriteService.toggleFavorite(loggedInUser.getId(), productId);
-            // 同时获取最新的收藏数
-            int newCount = productService.findProductById(productId).getFavoriteCount();
 
-            // 在返回的数据中加入新的总数
             Map<String, Object> response = new java.util.HashMap<>();
             response.put("isFavorited", isFavorited);
-            response.put("favoriteCount", newCount);
-
             return ResponseEntity.ok(response);
+
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         }
@@ -65,7 +61,7 @@ public class FavoriteController {
                 productMap.put("id", product.getId());
                 productMap.put("title", product.getTitle());
                 productMap.put("price", product.getPrice());
-                productMap.put("favoriteCount", product.getFavoriteCount());
+                productMap.put("sales", product.getSales());
 
                 // 在“我的收藏”页面，所有商品当然都是已收藏状态
                 productMap.put("isFavorited", true);

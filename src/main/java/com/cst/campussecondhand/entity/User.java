@@ -36,4 +36,16 @@ public class User {
 
     @Column(name = "updated_time")
     private Date updatedTime; // 最后更新时间
+
+    @Column(name = "member_no", length = 20, unique = true)
+    private String memberNo;    // 会员编号
+
+    @Column(name = "real_name", length = 50)
+    private String realName;    // 会员姓名（用于收货）
+
+    @Column(length = 255)
+    private String address;     // 会员地址（邮寄地址）
+
+    @Column(length = 20)
+    private String role = "MEMBER"; // 角色：MEMBER（会员）、SHOP_OWNER（店主）、ADMIN（管理员）
 }

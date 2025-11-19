@@ -265,6 +265,8 @@
                 <i class="fa-regular fa-star"></i>
                 <span id="fav-text">收藏</span>
             </button>
+            <button id="addToCartBtn" class="btn">加入购物车</button>
+
         </div>
     </div>
 </div>
@@ -295,6 +297,8 @@
         const favBtn = document.getElementById('fav-btn');
         const favText = document.getElementById('fav-text');
         const favIcon = favBtn.querySelector('i');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+
 
         // 灯箱相关元素
         const lightbox = document.getElementById('lightbox');
@@ -370,6 +374,29 @@
                 })
                 .catch(error => console.error("收藏操作失败:", error));
         });
+
+        // 加入购物车
+        addToCartBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch(`/api/cart-items?productId=${productId}&quantity=1`, {
+                    method: 'POST',
+                    credentials: 'include'   // 携带会话cookie
+                });
+                if (res.ok) {
+                    alert('已加入购物车');
+                } else if (res.status === 401) {
+                    alert('请先登录');
+                    window.location.href = '/login.html';
+                } else {
+                    const msg = await res.text();
+                    alert(msg || '加入购物车失败');
+                }
+            } catch (e) {
+                alert('网络异常，请稍后再试');
+                console.error(e);
+            }
+        });
+
 
         // --- 图片切换和灯箱的函数 ---
         function updateMainImage() {

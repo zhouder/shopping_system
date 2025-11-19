@@ -46,6 +46,13 @@ public class ProductController {
         if (loggedInUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", "请先登录再发布商品"));
         }
+        // ===== 新增：角色判断 =====
+        String role = loggedInUser.getRole();
+        if (!"ADMIN".equals(role) && !"SHOP_OWNER".equals(role)) {
+            // 不是管理员，也不是店主 → 拒绝发布
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("只有店主或管理员可以发布商品，请联系管理员设置角色");
+        }
         if (loggedInUser.getId() != sellerId) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("error", "无法替他人发布商品"));
         }
@@ -82,7 +89,7 @@ public class ProductController {
             productMap.put("id", product.getId());
             productMap.put("title", product.getTitle());
             productMap.put("price", product.getPrice());
-            productMap.put("favoriteCount", product.getFavoriteCount());
+            productMap.put("sales", product.getSales());
 
             boolean isFavorited = false;
             if (loggedInUser != null) {
@@ -127,7 +134,7 @@ public class ProductController {
             productMap.put("location", product.getLocation());
             productMap.put("category", product.getCategory());
             productMap.put("createdTime", product.getCreatedTime());
-            productMap.put("favoriteCount", product.getFavoriteCount());
+            productMap.put("sales", product.getSales());
 
             boolean isFavorited = false;
             if (loggedInUser != null) {

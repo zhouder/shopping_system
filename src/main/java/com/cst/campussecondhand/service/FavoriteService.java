@@ -36,16 +36,13 @@ public class FavoriteService {
         if (existingFavorite.isPresent()) {
             // 如果已收藏，则取消收藏
             favoriteRepository.delete(existingFavorite.get());
-            product.setFavoriteCount(product.getFavoriteCount() - 1);
-            productRepository.save(product);
             return false; // 返回 false 表示取消收藏
         } else {
             // 如果未收藏，则添加收藏
             favoriteRepository.save(new Favorite(user, product));
-            product.setFavoriteCount(product.getFavoriteCount() + 1);
-            productRepository.save(product);
             return true; // 返回 true 表示添加收藏
         }
+
     }
 
     // 新增：获取一个用户收藏的所有商品

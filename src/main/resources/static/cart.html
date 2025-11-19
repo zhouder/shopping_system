@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>我的购物车</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial; margin: 24px; }
+        h1 { font-size: 20px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #fafafa; }
+        .actions button { margin-right: 6px; }
+        .total { text-align: right; margin-top: 16px; font-size: 16px; }
+        .toolbar { margin-bottom: 12px; }
+        .btn { padding: 8px 12px; border: 1px solid #1677ff; background: #1677ff; color: #fff; border-radius: 4px; cursor: pointer; }
+        .btn.link { background: #fff; color: #1677ff; }
+        .num { width: 64px; }
+        .empty { padding: 32px; text-align: center; color: #888; }
+        a { color: #1677ff; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <a class="btn link" href="/index.html">← 返回首页</a>
+</div>
+
+<h1>我的购物车</h1>
+
+<div id="cartRoot"></div>
+
+<div class="total" id="cartTotal"></div>
+
+<div style="text-align:right;margin-top:12px;">
+    <button class="btn" id="checkoutBtn" disabled>去结算（下一步实现）</button>
+</div>
+
+<script>
+    async function api(path, options = {}) {
+        const res = await fetch(path, { credentials: 'include', ...options });
+        if (!res.ok) {
+            const text = await res.text();
+            alert(text || '请求失败');
+            throw new Error(text || res.status);
+        }
+        const ct = res.headers.get('content-type') || '';
+        return ct.includes('application/json') ? res.json() : res.text();
+    }
+
+    function h(tag, attrs = {}, ...children) {
+        const el = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+            if (k === 'class') el.className = v;
+            else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.substring(2).toLowerCase(), v);
+            else el.setAttribute(k, v);
+        }
+        for (const ch of children) {
+            if (ch == null) continue;
+            el.appendChild(typeof ch === 'string' ? document.createTextNode(ch) : ch);
+        }
+        return el;
+    }
+
+    async function loadCart() {
+        const { items, totalAmount } = await api('/api/cart-items/my');
+        const root = document.getElementById('cartRoot');
+        const totalDiv = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+
+        root.innerHTML = '';
+        totalDiv.textContent = '';
+        checkoutBtn.disabled = !items || items.length === 0;
+
+        if (!items || items.length === 0) {
+            root.appendChild(h('div', { class: 'empty' }, '购物车是空的'));
+            return;
+        }
+
+        const table = h('table', {},
+            h('thead', {}, h('tr', {},
+                h('th', {}, '商品'),
+                h('th', {}, '单价'),
+                h('th', {}, '数量'),
+                h('th', {}, '小计'),
+                h('th', {}, '操作')
+            )),
+            h('tbody', {}, ...items.map(item => {
+                const quantityInput = h('input', { type: 'number', class: 'num', min: '1', value: String(item.quantity) });
+                const updateBtn = h('button', { class: 'btn' }, '更新');
+                updateBtn.onclick = async () => {
+                    const q = parseInt(quantityInput.value || '1', 10);
+                    await api(`/api/cart-items/${item.id}?quantity=${q}`, { method: 'PUT' });
+                    await loadCart();
+                };
+                const delBtn = h('button', { class: 'btn link' }, '删除');
+                delBtn.onclick = async () => {
+                    if (confirm('确定删除该商品？')) {
+                        await api(`/api/cart-items/${item.id}`, { method: 'DELETE' });
+                        await loadCart();
+                    }
+                };
+                return h('tr', {},
+                    h('td', {}, h('a', { href: `/product-detail.html?id=${item.productId}` }, item.title)),
+                    h('td', {}, String(item.price)),
+                    h('td', {}, quantityInput),
+                    h('td', {}, String(item.subtotal)),
+                    h('td', { class: 'actions' }, updateBtn, delBtn)
+                );
+            }))
+        );
+
+        root.appendChild(table);
+        totalDiv.textContent = '合计：' + String(totalAmount);
+    }
+
+    document.getElementById('checkoutBtn').addEventListener('click', async () => {
+        try {
+            // 可选：弹窗收货地址；不填就用用户资料里的 address
+            const addr = prompt('确认收货地址（可留空使用个人资料地址）：') || '';
+            const res = await fetch('/api/orders/checkout' + (addr ? ('?address=' + encodeURIComponent(addr)) : ''), {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                const data = await res.json();
+                alert('下单成功，订单号：' + data.orderId);
+                // 跳转“我的订单”
+                location.href = '/orders.html';
+            } else if (res.status === 401) {
+                alert('请先登录');
+                location.href = '/login.html';
+            } else {
+                const msg = await res.text();
+                alert(msg || '下单失败');
+            }
+        } catch (e) {
+            alert('网络异常，请稍后再试');
+        }
+
+    loadCart().catch(console.error);
+</script>
+</body>
+</html>
