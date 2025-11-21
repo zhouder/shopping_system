@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.cst</groupId>
-	<artifactId>campus-secondhand</artifactId>
+	<artifactId>shopping_system</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>campus-secondhand</name>
-	<description>campus-secondhand</description>
+	<name>shopping_system</name>
+	<description>shopping_system</description>
 	<url/>
 	<licenses>
 		<license/>
