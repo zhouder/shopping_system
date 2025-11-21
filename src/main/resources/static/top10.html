@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>最受欢迎商品 · Top10</title>
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#1f2328;
+            --sub:#6b7280;
+            --blue:#2563eb;
+            --blue-weak:#e8efff;
+            --border:#e9ecf2;
+            --radius:18px;
+            --shadow:0 10px 30px rgba(12,18,36,.06);
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:var(--text);
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
+        .wrap{max-width:980px;margin:28px auto;padding:0 16px}
+        .header{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:14px}
+        .title{font-size:26px;font-weight:800;letter-spacing:.3px}
+        .sub{color:var(--sub);font-size:14px}
+        .btn{border:1px solid var(--blue);color:var(--blue);background:#fff;
+            border-radius:999px;padding:8px 14px;cursor:pointer;text-decoration:none}
+        .btn:hover{background:var(--blue);color:#fff}
+
+        .card{background:var(--card);border:1px solid var(--border);
+            border-radius:var(--radius);box-shadow:var(--shadow)}
+        .section{padding:12px 14px}
+
+        /* 排行榜 */
+        .list{list-style:none;margin:0;padding:6px 10px;display:flex;flex-direction:column;gap:8px}
+        .row{display:grid;grid-template-columns:48px 1fr 120px 86px;
+            align-items:center;gap:14px;padding:10px 10px;border-radius:14px;
+            transition:transform .15s ease, background .15s ease}
+        .row:hover{background:#fafcff;transform:translateY(-1px)}
+        .rank{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+            font-weight:700;color:#fff;background:#9ca3af}
+        .rank-1{background:linear-gradient(135deg,#ffb400,#ff922b)}   /* 🥇 */
+        .rank-2{background:linear-gradient(135deg,#a1a1aa,#c7c7d1)}   /* 🥈 */
+        .rank-3{background:linear-gradient(135deg,#d97706,#f59e0b)}   /* 🥉 */
+
+        .title-link{color:var(--text);text-decoration:none;font-weight:700}
+        .title-link:hover{color:var(--blue)}
+        .meta{display:flex;align-items:center;gap:8px;overflow:hidden}
+        .badge{font-size:12px;background:var(--blue-weak);color:#2459c5;border:1px solid #dbe8ff;
+            border-radius:999px;padding:2px 10px;white-space:nowrap}
+        .price{color:var(--sub);font-variant-numeric:tabular-nums}
+
+        .bar{height:12px;background:#eef2ff;border-radius:999px;overflow:hidden}
+        .fill{height:100%;background:linear-gradient(90deg,#3b82f6 0%, #2563eb 100%);
+            width:0;border-radius:999px;transform-origin:left center;transition:width .6s cubic-bezier(.2,.6,.2,1)}
+
+        .num{font-weight:700;text-align:right; font-variant-numeric: tabular-nums}
+
+        /* 顶部说明 */
+        .hint{padding:0 18px 12px;color:var(--sub);font-size:12px}
+
+        @media (max-width:680px){
+            .row{grid-template-columns:36px 1fr 70px 60px}
+            .badge{display:none}
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="header">
+        <div>
+            <div class="title">最受欢迎商品 · Top10</div>
+            <div class="sub">按销量从高到低（点击商品名可跳转详情）</div>
+        </div>
+        <a class="btn" href="/index.html">返回首页</a>
+    </div>
+
+    <div class="card section">
+        <ul class="list" id="list"></ul>
+        <div class="hint">注：蓝条长度按“销量 / Top10 最大销量”线性缩放。</div>
+    </div>
+</div>
+
+<script>
+    async function api(u){const r=await fetch(u,{credentials:'include'});if(!r.ok)throw new Error(await r.text());return r.json();}
+    function money(n){return Number(n).toLocaleString('zh-CN',{maximumFractionDigits:2});}
+
+    (async ()=>{
+        const data = await api('/api/reports/top10'); // [{id,title,categoryName,price,sales},...]
+        const max = Math.max(1, ...data.map(d=>d.sales));
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+
+        data.forEach((d,i)=>{
+            const li = document.createElement('li');
+            li.className = 'row';
+
+            const rank = document.createElement('div');
+            rank.className = `rank rank-${i+1}`;
+            rank.textContent = i+1;
+
+            const meta = document.createElement('div'); meta.className='meta';
+            const title = document.createElement('a');
+            title.className='title-link';
+            title.href = `/product-detail.html?id=${d.id}&from=top10`;
+            title.textContent = d.title;
+            const badge = document.createElement('span');
+            badge.className='badge';
+            badge.textContent = d.categoryName || '未分类';
+            meta.append(title,badge);
+
+            const price = document.createElement('div');
+            price.className='price';
+            price.textContent = '¥ ' + money(d.price);
+
+            const right = document.createElement('div');
+            right.style.display='grid';
+            right.style.gridTemplateColumns='1fr 48px';
+            right.style.alignItems='center';
+            right.style.gap='10px';
+
+            const bar = document.createElement('div'); bar.className='bar';
+            const fill = document.createElement('div'); fill.className='fill';
+            // 动画：稍后再赋值，形成入场动画
+            requestAnimationFrame(()=>{ fill.style.width = (d.sales/max*100).toFixed(2)+'%'; });
+            bar.append(fill);
+
+            const num = document.createElement('div'); num.className='num'; num.textContent = d.sales;
+
+            right.append(bar,num);
+            li.append(rank, meta, price, right);
+            list.appendChild(li);
+        });
+    })().catch(e=>{
+        document.querySelector('.wrap').insertAdjacentHTML('beforeend',
+            `<p style="color:#d33;margin-top:12px;">加载失败：${e.message}</p>`);
+    });
+</script>
+</body>
+</html>

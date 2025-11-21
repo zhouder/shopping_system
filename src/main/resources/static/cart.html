@@ -32,7 +32,7 @@
 <div class="total" id="cartTotal"></div>
 
 <div style="text-align:right;margin-top:12px;">
-    <button class="btn" id="checkoutBtn" disabled>去结算（下一步实现）</button>
+    <button class="btn" id="checkoutBtn" disabled>去结算</button>
 </div>
 
 <script>
@@ -113,29 +113,24 @@
         totalDiv.textContent = '合计：' + String(totalAmount);
     }
 
+    // 结算（你已按 6B 接口实现）
     document.getElementById('checkoutBtn').addEventListener('click', async () => {
         try {
-            // 可选：弹窗收货地址；不填就用用户资料里的 address
             const addr = prompt('确认收货地址（可留空使用个人资料地址）：') || '';
             const res = await fetch('/api/orders/checkout' + (addr ? ('?address=' + encodeURIComponent(addr)) : ''), {
-                method: 'POST',
-                credentials: 'include'
+                method: 'POST', credentials: 'include'
             });
             if (res.ok) {
                 const data = await res.json();
                 alert('下单成功，订单号：' + data.orderId);
-                // 跳转“我的订单”
-                location.href = '/orders.html';
+                location.href = '/orders.html';  // 可换成你的订单页
             } else if (res.status === 401) {
-                alert('请先登录');
-                location.href = '/login.html';
+                alert('请先登录'); location.href = '/login.html';
             } else {
-                const msg = await res.text();
-                alert(msg || '下单失败');
+                alert(await res.text() || '下单失败');
             }
-        } catch (e) {
-            alert('网络异常，请稍后再试');
-        }
+        } catch (e) { alert('网络异常，请稍后再试'); }
+    });
 
     loadCart().catch(console.error);
 </script>

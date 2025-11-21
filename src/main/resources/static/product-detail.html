@@ -237,7 +237,7 @@
 </head>
 <body>
 
-<a href="/index.html" class="back-to-home">
+<a id="backBtn" href="javascript:void(0)" class="back-to-home">
     <i class="fa-solid fa-arrow-left"></i>
 </a>
 
@@ -439,6 +439,28 @@
         lightbox.addEventListener('click', (e) => {
             if (e.target === lightbox) lightbox.classList.remove('show');
         });
+        const backBtn = document.getElementById('backBtn');
+        backBtn.addEventListener('click', () => {
+            const from = new URLSearchParams(location.search).get('from');
+
+            // 优先回到上一个页面（如果确实是从 top10 来的）
+            if (from === 'top10') {
+                if (document.referrer && document.referrer.includes('/top10.html')) {
+                    history.back();
+                } else {
+                    location.href = '/top10.html';
+                }
+                return;
+            }
+
+            // 其它来源：正常后退；没有历史就回首页
+            if (document.referrer) {
+                history.back();
+            } else {
+                location.href = '/index.html';
+            }
+        });
+
     });
 </script>
 

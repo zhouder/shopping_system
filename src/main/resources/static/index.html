@@ -261,6 +261,14 @@
             color: inherit;
             display: block;
         }
+
+        /* 中间区域：可以上下滚动 */
+        .sidebar-scroll{
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;   /* 移动端顺滑 */
+            padding-right: 4px;                  /* 给滚动条留点空隙 */
+            flex: 1;                             /* 占据可用空间 */
+        }
     </style>
 </head>
 <body>
@@ -309,35 +317,47 @@
 </div>
 
 <aside class="right-sidebar">
-    <a href="/profile.html" class="sidebar-item">
+    <div class="sidebar-scroll">
+    <a href="/profile.html" class="sidebar-item" data-roles="ALL">
         <div class="icon-wrapper">
             <img src="https://placehold.co/60x60/eee/ccc?text=?" alt="用户头像" class="sidebar-avatar">
         </div>
         <span class="sidebar-username">个人中心</span>
     </a>
-    <a href="/publish.html" class="sidebar-item">
+    <a href="/publish.html" class="sidebar-item" data-roles="ADMIN,SHOP_OWNER">
         <div class="icon-wrapper"><i class="fa-solid fa-plus"></i></div>
         <span>发布闲置</span>
     </a>
-    <a href="/my-products.html" class="sidebar-item">
+    <a href="/my-products.html" class="sidebar-item" data-roles="ADMIN,SHOP_OWNER">
         <div class="icon-wrapper"><i class="fa-solid fa-list-check"></i></div>
         <span>我的商品</span>
     </a>
-    <a href="/my-favorites.html" class="sidebar-item">
+    <a href="/my-favorites.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
         <div class="icon-wrapper"><i class="fa-regular fa-star"></i></div>
         <span>我的收藏</span>
     </a>
-    <a href="/chat.html" class="sidebar-item" id="sidebar-chat-link">
+    <a href="/cart.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
+        <div class="icon-wrapper"><i class="fa-solid fa-cart-shopping"></i></div>
+        <span>购物车</span>
+    </a>
+    <a href="/orders.html" class="sidebar-item" data-roles="ALL">
+        <div class="icon-wrapper"><i class="fa-solid fa-receipt"></i></div>
+        <span>我的订单</span>
+    </a>
+
+
+    <a href="/chat.html" class="sidebar-item" id="sidebar-chat-link" data-roles="ALL">
         <div class="icon-wrapper">
             <i class="fa-regular fa-comment-dots"></i>
             <span class="notification-dot" id="chat-notification-dot"></span>
         </div>
         <span>聊天</span>
     </a>
-    <a href="/settings.html" class="sidebar-item">
+    <a href="/settings.html" class="sidebar-item" data-roles="ALL">
         <div class="icon-wrapper"><i class="fa-solid fa-gear"></i></div>
         <span>设置</span>
     </a>
+    </div>
 </aside>
 
 <script>
@@ -550,6 +570,28 @@
         checkUnreadMessages();
         unreadCheckInterval = setInterval(checkUnreadMessages, 5000);
     });
+
+    (async () => {
+        // 默认当成 MEMBER（即便未登录也先展示“购物车/收藏”，点击会提示登录）
+        let role = 'MEMBER';
+        try {
+            const res = await fetch('/api/users/me', { credentials: 'include' });
+            if (res.ok) {
+                const me = await res.json();
+                role = me.role || 'MEMBER';
+            }
+        } catch (e) {
+            // 未登录/接口失败都忽略，保持默认 MEMBER
+        }
+
+        document.querySelectorAll('.sidebar-item[data-roles]').forEach(el => {
+            const list = (el.getAttribute('data-roles') || '').split(',').map(s => s.trim());
+            // 可见规则：包含当前 role，或标记了 ALL
+            if (!list.includes('ALL') && !list.includes(role)) {
+                el.style.display = 'none';
+            }
+        });
+    })();
 </script>
 
 </body>

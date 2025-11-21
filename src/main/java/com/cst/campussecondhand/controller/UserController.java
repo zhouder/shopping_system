@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -152,6 +153,20 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/api/users/me")
+    public ResponseEntity<?> me(HttpSession session) {
+        User u = (User) session.getAttribute("loggedInUser");
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("未登录");
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("id", u.getId());
+        body.put("username", u.getUsername());
+        body.put("nickname", u.getNickname());
+        body.put("role", u.getRole()); // ADMIN / SHOP_OWNER / MEMBER
+        return ResponseEntity.ok(body);
     }
 
 
