@@ -43,7 +43,7 @@ public class User {
     @Column(name = "real_name", length = 50)
     private String realName;    // 会员姓名（用于收货）
 
-    @Column(length = 255)
+    @Column(name="address")
     private String address;     // 会员地址（邮寄地址）
 
     @Column(length = 20)

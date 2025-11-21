@@ -165,6 +165,14 @@
             top: 50px;
             opacity: 1;
         }
+        .role-row { display: flex; gap: 12px; }
+        .role-item {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+            user-select: none; background:#fff;
+        }
+        .role-item input { accent-color: #007bff; }
+
     </style>
 </head>
 <body>
@@ -200,6 +208,21 @@
                 <label for="phone">手机号</label>
                 <input type="tel" id="phone" name="phone" placeholder="选填">
             </div>
+            <!-- 选择身份 -->
+            <div class="form-group">
+                <label>选择身份 <span class="required-star">*</span></label>
+                <div class="role-row">
+                    <label class="role-item">
+                        <input type="radio" name="role" value="MEMBER" checked>
+                        <span>会员</span>
+                    </label>
+                    <label class="role-item">
+                        <input type="radio" name="role" value="SHOP_OWNER">
+                        <span>商家</span>
+                    </label>
+                </div>
+            </div>
+
             <button type="submit" class="btn">立即注册</button>
         </form>
         <div class="footer-link">
@@ -265,7 +288,7 @@
                 const nickname = document.getElementById('nickname').value;
                 const email = document.getElementById('email').value;
                 const phone = document.getElementById('phone').value;
-
+                const role = document.querySelector('input[name="role"]:checked')?.value || 'MEMBER';
                 if (password !== confirmPassword) {
                     showMessage('两次输入的密码不一致，请重新输入！', true);
                     return;
@@ -276,7 +299,8 @@
                     password: password,
                     nickname: nickname || `用户${Math.random().toString(36).substr(2, 8)}`,
                     email: email,
-                    phone: phone
+                    phone: phone,
+                    role: role
                 };
 
                 fetch('/api/users/register', {

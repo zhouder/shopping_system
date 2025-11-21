@@ -25,85 +25,27 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .avatar-wrapper {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
+        .avatar-wrapper { position: relative; display: inline-block; cursor: pointer; }
         .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #eee;
-            margin-bottom: 15px;
+            width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #eee; margin-bottom: 15px;
         }
-        .avatar-edit-overlay {
-            position: absolute;
-            bottom: 15px;
-            right: 0;
-            width: 30px;
-            height: 30px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border-radius: 50%;
-            display: none; /* 编辑模式下显示 */
-            justify-content: center;
-            align-items: center;
-            font-size: 14px;
+        .avatar-edit-overlay{
+            position: absolute; bottom: 15px; right: 0; width: 30px; height: 30px;
+            background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%;
+            display: none; justify-content: center; align-items: center; font-size: 14px;
         }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: bold;
-        }
-        .input-wrapper {
-            position: relative;
-        }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display:block; margin-bottom:8px; color:#555; font-weight:bold; }
+        .input-wrapper { position: relative; }
         .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
         }
-        .form-group input:disabled {
-            background-color: #f1f1f1;
-            color: #888;
-            cursor: not-allowed;
-        }
-        .password-toggle-icon {
-            position: absolute;
-            top: 50%;
-            right: 12px;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #999;
-        }
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
-        .btn {
-            flex-grow: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .btn-primary { background-color: #007bff; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-success { background-color: #28a745; }
+        .form-group input:disabled { background:#f1f1f1; color:#888; cursor:not-allowed; }
+        .password-toggle-icon { position:absolute; top:50%; right:12px; transform:translateY(-50%); cursor:pointer; color:#999; }
+        .button-group { display:flex; gap:15px; margin-top:25px; }
+        .btn { flex:1; padding:12px; border:none; border-radius:6px; color:#fff; font-size:16px; font-weight:bold; cursor:pointer; transition:background .3s; }
+        .btn-primary{ background:#007bff; } .btn-secondary{ background:#6c757d; } .btn-success{ background:#28a745; }
     </style>
 </head>
 <body>
@@ -113,11 +55,21 @@
         <img src="https://placehold.co/100x100/eee/ccc?text=头像" alt="用户头像" class="avatar" id="avatar">
         <div class="avatar-edit-overlay" id="avatar-edit-overlay"><i class="fa-solid fa-camera"></i></div>
     </label>
-    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+    <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
 
+    <!-- 新增：编号（只读） -->
+    <div class="form-group">
+        <label id="memberNoLabel" for="memberNo">会员编号</label>
+        <input type="text" id="memberNo" disabled>
+    </div>
     <div class="form-group">
         <label for="nickname">昵称</label>
         <input type="text" id="nickname" disabled>
+    </div>
+    <!-- 新增：会员地址（ADMIN/MEMBER 可见、可编辑；SHOP_OWNER 隐藏） -->
+    <div class="form-group" id="addressGroup">
+        <label for="address">地址</label>
+        <input type="text" id="address" placeholder="请完善收货地址">
     </div>
     <div class="form-group">
         <label for="email">邮箱</label>
@@ -136,7 +88,7 @@
         </div>
     </div>
 
-    <div id="password-edit-groups" style="display: none;">
+    <div id="password-edit-groups" style="display:none;">
         <div class="form-group">
             <label for="newPassword">新密码</label>
             <input type="text" id="newPassword" placeholder="留空则不修改密码">
@@ -145,10 +97,10 @@
 
     <div class="button-group" id="view-mode-buttons">
         <button class="btn btn-primary" id="edit-btn">编辑</button>
-        <a href="/index.html" class="btn btn-secondary" style="text-decoration: none;">返回</a>
+        <a href="/index.html" class="btn btn-secondary" style="text-decoration:none;">返回</a>
     </div>
 
-    <div class="button-group" id="edit-mode-buttons" style="display: none;">
+    <div class="button-group" id="edit-mode-buttons" style="display:none;">
         <button class="btn btn-success" id="save-btn">保存</button>
         <button class="btn btn-secondary" id="cancel-btn">取消</button>
     </div>
@@ -156,231 +108,197 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- DOM 元素获取 ---
+        // --- DOM 元素 ---
         const avatarImg = document.getElementById('avatar');
         const avatarUpload = document.getElementById('avatar-upload');
         const avatarEditOverlay = document.getElementById('avatar-edit-overlay');
+
         const nicknameInput = document.getElementById('nickname');
-        const emailInput = document.getElementById('email');
-        const phoneInput = document.getElementById('phone');
-        const passwordViewGroup = document.getElementById('password-view-group');
+        const emailInput    = document.getElementById('email');
+        const phoneInput    = document.getElementById('phone');
+
+        const memberNoInput = document.getElementById('memberNo');
+        const memberNoLabel = document.getElementById('memberNoLabel');
+        const addressGroup  = document.getElementById('addressGroup');
+        const addressInput  = document.getElementById('address');
+
+        const passwordViewGroup  = document.getElementById('password-view-group');
         const passwordEditGroups = document.getElementById('password-edit-groups');
-        const newPasswordInput = document.getElementById('newPassword');
-        const passwordViewInput = document.getElementById('password-view');
+        const newPasswordInput   = document.getElementById('newPassword');
+        const passwordViewInput  = document.getElementById('password-view');
         const passwordToggleIcon = document.getElementById('password-toggle-icon');
-        const editBtn = document.getElementById('edit-btn');
-        const saveBtn = document.getElementById('save-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const viewModeButtons = document.getElementById('view-mode-buttons');
-        const editModeButtons = document.getElementById('edit-mode-buttons');
+
+        const editBtn       = document.getElementById('edit-btn');
+        const saveBtn       = document.getElementById('save-btn');
+        const cancelBtn     = document.getElementById('cancel-btn');
+        const viewButtons   = document.getElementById('view-mode-buttons');
+        const editButtons   = document.getElementById('edit-mode-buttons');
 
         let originalData = {};
         let selectedAvatarFile = null;
 
-        // --- 函数定义 ---
-
-        /**
-         * 根据昵称和背景色生成一个默认头像
-         * @param {string} nickname - 用户昵称
-         * @param {string} bgColor - 头像的背景色
-         * @returns {string} - Base64格式的图片数据
-         */
+        // 生成默认头像
         function generateAvatar(nickname, bgColor) {
             const canvas = document.createElement('canvas');
-            canvas.width = 100;
-            canvas.height = 100;
+            canvas.width = 100; canvas.height = 100;
             const ctx = canvas.getContext('2d');
-            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
-            const finalBgColor = bgColor || colors[Math.floor(Math.random() * colors.length)];
-
-            ctx.fillStyle = finalBgColor;
-            ctx.fillRect(0, 0, 100, 100);
-
-            ctx.font = 'bold 50px Arial';
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            const firstChar = nickname ? nickname.charAt(0).toUpperCase() : '?';
-            ctx.fillText(firstChar, 50, 50);
-
+            const colors = ['#f44336','#e91e63','#9c27b0','#673ab7','#3f51b5','#2196f3','#03a9f4','#00bcd4','#009688','#4caf50','#8bc34a','#cddc39','#ffeb3b','#ffc107','#ff9800','#ff5722'];
+            const finalBg = bgColor || colors[Math.floor(Math.random()*colors.length)];
+            ctx.fillStyle = finalBg; ctx.fillRect(0,0,100,100);
+            ctx.font='bold 50px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText((nickname||'?').charAt(0).toUpperCase(), 50, 50);
             return canvas.toDataURL();
         }
 
-        /**
-         * 切换到编辑模式
-         */
         function enterEditMode() {
             nicknameInput.disabled = false;
-            emailInput.disabled = false;
-            phoneInput.disabled = false;
-            passwordViewGroup.style.display = 'none';
+            emailInput.disabled    = false;
+            phoneInput.disabled    = false;
+            // 只有 ADMIN/MEMBER 才能编辑地址；商家隐藏
+            addressInput.disabled  = (originalData.role === 'SHOP_OWNER');
+
+            passwordViewGroup.style.display  = 'none';
             passwordEditGroups.style.display = 'block';
-            avatarEditOverlay.style.display = 'flex';
-            viewModeButtons.style.display = 'none';
-            editModeButtons.style.display = 'flex';
+            avatarEditOverlay.style.display  = 'flex';
+
+            viewButtons.style.display = 'none';
+            editButtons.style.display = 'flex';
             document.querySelector('.avatar-wrapper').setAttribute('for', 'avatar-upload');
         }
 
-        /**
-         * 切换回查看模式，并重置所有输入框为原始数据
-         */
         function exitEditMode() {
-            // 恢复原始数据显示
+            // 回填
             nicknameInput.value = originalData.nickname || '';
-            emailInput.value = originalData.email || '';
-            phoneInput.value = originalData.phone || '';
-            if (originalData.avatarUrl) {
-                avatarImg.src = originalData.avatarUrl;
+            emailInput.value    = originalData.email    || '';
+            phoneInput.value    = originalData.phone    || '';
+            memberNoInput.value = originalData.memberNo || '';
+            addressInput.value  = originalData.address  || '';
+
+            // 头像
+            if (originalData.avatarUrl) avatarImg.src = originalData.avatarUrl;
+            else avatarImg.src = generateAvatar(originalData.nickname, originalData.avatarBgColor);
+
+            // 角色控制：商家隐藏地址，且编号标签显示“商家编号”；其余角色为“会员编号”
+            if (originalData.role === 'SHOP_OWNER') {
+                addressGroup.style.display = 'none';
+                memberNoLabel.textContent  = '商家编号';
             } else {
-                avatarImg.src = generateAvatar(originalData.nickname, originalData.avatarBgColor);
+                addressGroup.style.display = '';
+                memberNoLabel.textContent  = '会员编号';
             }
 
-            // 禁用输入框
+            // 禁用输入
             nicknameInput.disabled = true;
-            emailInput.disabled = true;
-            phoneInput.disabled = true;
+            emailInput.disabled    = true;
+            phoneInput.disabled    = true;
+            addressInput.disabled  = true;
+            memberNoInput.disabled = true;
 
-            // 切换按钮和密码框的可见性
-            passwordViewGroup.style.display = 'block';
+            // 视图状态
+            passwordViewGroup.style.display  = 'block';
             passwordEditGroups.style.display = 'none';
-            newPasswordInput.value = ''; // 清空新密码输入
-            avatarEditOverlay.style.display = 'none';
+            newPasswordInput.value = '';
+            avatarEditOverlay.style.display  = 'none';
             document.querySelector('.avatar-wrapper').removeAttribute('for');
             selectedAvatarFile = null;
-            viewModeButtons.style.display = 'flex';
-            editModeButtons.style.display = 'none';
+            viewButtons.style.display = 'flex';
+            editButtons.style.display = 'none';
 
-            // 密码恢复为隐藏状态
+            // 密码恢复为隐藏
             passwordViewInput.type = 'password';
             passwordViewInput.value = '********';
             passwordToggleIcon.className = 'fa-solid fa-eye-slash password-toggle-icon';
         }
 
-        // --- 页面加载时的核心逻辑 ---
-        fetch('/api/users/me')
-            .then(response => {
-                if (response.status === 401) {
-                    alert('请先登录！');
-                    window.location.href = '/login.html';
-                    throw new Error('未登录');
-                }
-                return response.json();
+        // 初次加载用户信息
+        fetch('/api/users/me', { credentials:'include' })
+            .then(r => {
+                if (r.status === 401) { alert('请先登录！'); location.href='/login.html'; throw new Error('UNAUTH'); }
+                return r.json();
             })
-            .then(user => {
-                if (user) {
-                    originalData = user; // 保存包括真实密码在内的所有数据
-                    exitEditMode(); // 使用此函数初始化页面状态
-                }
-            }).catch(err => {
-            if (err.message !== '未登录') {
-                console.error("获取用户信息失败:", err);
-            }
-        });
+            .then(user => { originalData = user || {}; exitEditMode(); })
+            .catch(e => { if (e.message!=='UNAUTH') console.error('获取用户信息失败', e); });
 
-
-        // --- 事件监听器 ---
-
-        // 头像上传预览
-        avatarUpload.addEventListener('change', (event) => {
-            if (event.target.files && event.target.files[0]) {
-                selectedAvatarFile = event.target.files[0];
+        // 事件：头像预览
+        avatarUpload.addEventListener('change', (e)=>{
+            if (e.target.files && e.target.files[0]) {
+                selectedAvatarFile = e.target.files[0];
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    avatarImg.src = e.target.result;
-                }
+                reader.onload = ev => { avatarImg.src = ev.target.result; }
                 reader.readAsDataURL(selectedAvatarFile);
             }
         });
 
-        // "编辑" 按钮
         editBtn.addEventListener('click', enterEditMode);
-
-        // "取消" 按钮
         cancelBtn.addEventListener('click', exitEditMode);
 
-        // "保存" 按钮
-        saveBtn.addEventListener('click', async () => {
-            try {
-                // 1. 更新头像 (如果用户选择了新文件)
-                if (selectedAvatarFile) {
-                    const formData = new FormData();
-                    formData.append('avatar', selectedAvatarFile);
-                    const avatarResponse = await fetch('/api/users/me/avatar', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!avatarResponse.ok) throw new Error('头像上传失败');
-                    // 保存成功后，用返回的最新用户数据更新 originalData
-                    const updatedUser = await avatarResponse.json();
-                    originalData = {...originalData, ...updatedUser};
+        // 保存
+        saveBtn.addEventListener('click', async ()=>{
+            try{
+                // 1) 上传头像（如有）
+                if (selectedAvatarFile){
+                    const fd = new FormData(); fd.append('avatar', selectedAvatarFile);
+                    const res = await fetch('/api/users/me/avatar', { method:'POST', body:fd, credentials:'include' });
+                    if (!res.ok) throw new Error('头像上传失败');
+                    const updatedUser = await res.json();
+                    originalData = { ...originalData, ...updatedUser };
                 }
 
-                // 2. 更新基本信息
-                const updatedData = {
+                // 2) 更新资料（含地址：仅当地址区域可见时才提交）
+                const body = {
                     nickname: nicknameInput.value,
-                    email: emailInput.value,
-                    phone: phoneInput.value
+                    email:    emailInput.value,
+                    phone:    phoneInput.value
                 };
-                const profileResponse = await fetch('/api/users/me', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
-                });
-                if (!profileResponse.ok) {
-                    const error = await profileResponse.json();
-                    throw new Error(error.error || '信息更新失败');
+                if (addressGroup.style.display !== 'none') {
+                    body.address = addressInput.value || '';
                 }
-                const profileData = await profileResponse.json();
-                originalData = {...originalData, ...profileData}; // 合并更新后的数据
 
-                // 3. 更新密码 (仅当用户在新密码框输入了内容时)
-                if (newPasswordInput.value) {
-                    const passwordResponse = await fetch('/api/users/me/password', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            newPassword: newPasswordInput.value
-                        })
+                const res2 = await fetch('/api/users/me', {
+                    method:'PUT', headers:{'Content-Type':'application/json'},
+                    credentials:'include', body: JSON.stringify(body)
+                });
+                if (!res2.ok) {
+                    const t = await res2.text();
+                    throw new Error(t || '信息更新失败');
+                }
+
+                // 3) 修改密码（可选）
+                if (newPasswordInput.value){
+                    const res3 = await fetch('/api/users/me/password', {
+                        method:'PUT', headers:{'Content-Type':'application/json'},
+                        credentials:'include', body: JSON.stringify({ newPassword: newPasswordInput.value })
                     });
-                    if (!passwordResponse.ok) {
-                        const error = await passwordResponse.json();
-                        throw new Error(error.error || '密码修改失败');
+                    if (!res3.ok) {
+                        const t = await res3.text();
+                        throw new Error(t || '密码修改失败');
                     }
                 }
 
+                // 4) 重新拉最新用户（确保与 session 同步）
+                const fresh = await fetch('/api/users/me', { credentials:'include' }).then(r=>r.json());
+                originalData = fresh;
+                exitEditMode();
                 alert('信息更新成功！');
-
-                // 再次从后端获取最新的完整数据 (特别是更新后的密码)
-                const freshDataResponse = await fetch('/api/users/me');
-                originalData = await freshDataResponse.json();
-
-                exitEditMode(); // 切换回查看模式
-
-            } catch (error) {
-                alert(`保存失败: ${error.message}`);
-                // 出错时也最好恢复到原始状态
+            }catch(err){
+                alert('保存失败：' + err.message);
                 exitEditMode();
             }
         });
 
-        // 密码查看小眼睛的点击逻辑
-        passwordToggleIcon.addEventListener('click', () => {
+        // 密码显示/隐藏
+        passwordToggleIcon.addEventListener('click', ()=>{
             if (passwordViewInput.type === 'password') {
-                // 从隐藏切换到显示
                 passwordViewInput.type = 'text';
-                passwordViewInput.value = originalData.password; // 使用保存的真实密码
+                passwordViewInput.value = originalData.password || '********';
                 passwordToggleIcon.className = 'fa-solid fa-eye password-toggle-icon';
             } else {
-                // 从显示切换回隐藏
                 passwordViewInput.type = 'password';
-                passwordViewInput.value = '********'; // 隐藏时用星号代替
+                passwordViewInput.value = '********';
                 passwordToggleIcon.className = 'fa-solid fa-eye-slash password-toggle-icon';
             }
         });
     });
 </script>
-
-
 </body>
 </html>

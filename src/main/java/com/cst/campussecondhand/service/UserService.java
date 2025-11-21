@@ -14,8 +14,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.UUID;
-
+import java.util.Objects;
 import static com.cst.campussecondhand.service.ProductService.UPLOAD_DIR;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 
@@ -23,45 +24,60 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // 注册逻辑
+    // 注册逻辑（最小改动：支持前端选择“会员/商家”角色，并按角色生成编号）
     public User register(User user) {
-        // 检查该用户名是否已经存在
+        // 0) 用户名/邮箱唯一性
         if (userRepository.findByUsername(user.getUsername()) != null) {
-            throw new RuntimeException("用户名 “"+user.getUsername()+"”已存在");
+            throw new RuntimeException("用户名 “" + user.getUsername() + "”已存在");
         }
-        // 检查该邮箱是否已经注册
         if (userRepository.findByEmail(user.getEmail()) != null) {
             throw new RuntimeException("该邮箱已注册");
         }
-        // 设置创建时间和更新时间
-        Date now=new Date();
-        user.setCreatedTime(now);
-        user.setUpdatedTime(now);
+
+        // 1) 角色：只允许 MEMBER / SHOP_OWNER，其他一律置为 MEMBER
+        String role = user.getRole();
+        if (!"MEMBER".equalsIgnoreCase(role) && !"SHOP_OWNER".equalsIgnoreCase(role)) {
+            role = "MEMBER";
+        } else {
+            role = role.toUpperCase(); // 统一成大写，前后端判断更稳定
+        }
+        user.setRole(role);
+
+        // 2) 生成头像底色
         String[] colors = {"#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722"};
         String bgColor = colors[(int) Math.floor(Math.random() * colors.length)];
         user.setAvatarBgColor(bgColor);
-        // 1）会员编号：简单用时间戳生成一个，不和业务强耦合就行
+
+        // 3) 编号：按身份加前缀（S=商家 / M=会员）
         if (user.getMemberNo() == null || user.getMemberNo().isEmpty()) {
-            String memberNo = "M" + System.currentTimeMillis();
-            user.setMemberNo(memberNo);
+            String prefix = "SHOP_OWNER".equals(role) ? "S" : "M";
+            // 时间+随机数，避免重复（和业务弱耦合）
+            String ts = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+            String rnd = String.format("%04d", new java.util.Random().nextInt(10000));
+            user.setMemberNo(prefix + ts + rnd);
         }
 
-        // 2）会员姓名：如果前端没单独传，就先用昵称顶上
+        // 4) 会员姓名：如果没传，用昵称兜底
         if (user.getRealName() == null || user.getRealName().isEmpty()) {
             user.setRealName(user.getNickname());
         }
 
-        // 3）会员地址：先给成空字符串，后面在“个人资料”页面让用户填写
-        if (user.getAddress() == null) {
-            user.setAddress("");
+        // 5) 地址：会员可先置空等待后续完善；商家不维护收货地址，置空即可
+        if ("SHOP_OWNER".equals(role)) {
+            user.setAddress(""); // 商家地址不使用
+        } else {
+            if (user.getAddress() == null) user.setAddress("");
         }
 
-        // ===== 新增：默认角色 =====
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("MEMBER");
-        }
+        // 6) 时间字段
+        java.util.Date now = new java.util.Date();
+        user.setCreatedTime(now);
+        user.setUpdatedTime(now);
+
+        // 7) 保存
         return userRepository.save(user);
     }
+
 
     // 登录逻辑
     public User login(String username, String password) {
@@ -87,23 +103,34 @@ public class UserService {
         return user;
     }
 
-    // 更新用户基本信息
+    // @Transactional  // 可选，建议加
     public User updateUser(Integer userId, User userDetails) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
-        // 检查邮箱是否已被其他用户注册
-        User userByEmail = userRepository.findByEmail(userDetails.getEmail());
-        if (userByEmail != null && userByEmail.getId() != userId) {
-            throw new RuntimeException("该邮箱已被注册");
+        // 1) 邮箱唯一性校验：只有变更时才校验
+        String newEmail = userDetails.getEmail();
+        if (newEmail != null && !Objects.equals(newEmail, user.getEmail())) {
+            User userByEmail = userRepository.findByEmail(newEmail);
+            // 关键修复：用 Objects.equals 比较，避免在 int 上调用 equals
+            if (userByEmail != null && !Objects.equals(userByEmail.getId(), userId)) {
+                throw new RuntimeException("该邮箱已被注册");
+            }
+            user.setEmail(newEmail);
         }
 
-        user.setNickname(userDetails.getNickname());
-        user.setEmail(userDetails.getEmail());
-        user.setPhone(userDetails.getPhone());
-        user.setUpdatedTime(new Date());
+        // 2) 其他字段：只在传入不为 null 时更新，避免把库里值清空
+        if (userDetails.getNickname() != null) user.setNickname(userDetails.getNickname());
+        if (userDetails.getPhone() != null)    user.setPhone(userDetails.getPhone());
 
-        return userRepository.save(user);
+        // 3) ★ 地址：按你的规则（商家不维护收货地址）写回
+        if (!"SHOP_OWNER".equals(user.getRole()) && userDetails.getAddress() != null) {
+            user.setAddress(userDetails.getAddress().trim());
+        }
+
+        user.setUpdatedTime(new Date());
+        // 立刻持久化（save 也可以；saveAndFlush 便于你在日志里看到 UPDATE）
+        return userRepository.saveAndFlush(user);
     }
 
     // 修改密码
