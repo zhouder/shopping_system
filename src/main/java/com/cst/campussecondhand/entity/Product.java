@@ -33,9 +33,6 @@ public class Product {
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller; // 卖家信息
 
-    @Column(length = 200)
-    private String location; // 卖家住址
-
     @Column(length = 50)
     private String category;  // 分类编号，对应 category 表的 code
 

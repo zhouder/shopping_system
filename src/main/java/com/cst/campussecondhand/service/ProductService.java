@@ -130,7 +130,7 @@ public class ProductService {
         existingProduct.setPrice(productDetails.getPrice());
         existingProduct.setDescription(productDetails.getDescription());
         existingProduct.setCategory(productDetails.getCategory());
-        existingProduct.setLocation(productDetails.getLocation());
+
 
         // 处理新上传的图片
         List<String> newImageUrls = new ArrayList<>();

@@ -123,10 +123,6 @@
             <input type="text" id="price" required pattern="^\d+(\.\d{1,2})?$">
         </div>
         <div class="form-group">
-            <label for="location">交易地点 <span class="required-star">*</span></label>
-            <input type="text" id="location" required>
-        </div>
-        <div class="form-group">
             <label for="description">商品描述</label>
             <textarea id="description"></textarea>
         </div>
@@ -222,7 +218,6 @@
 
             document.getElementById('title').value = product.title;
             document.getElementById('price').value = product.price.toFixed(2);
-            document.getElementById('location').value = product.location;
             document.getElementById('description').value = product.description;
             document.getElementById('category').value = product.category;
 
@@ -242,7 +237,6 @@
             const formData = new FormData();
             formData.append('title', document.getElementById('title').value);
             formData.append('price', document.getElementById('price').value);
-            formData.append('location', document.getElementById('location').value);
             formData.append('description', document.getElementById('description').value);
             formData.append('category', document.getElementById('category').value);
 

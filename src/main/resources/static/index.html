@@ -344,6 +344,11 @@
         <div class="icon-wrapper"><i class="fa-solid fa-receipt"></i></div>
         <span>我的订单</span>
     </a>
+    <!-- 新增：Top10 -->
+    <a href="/top10.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
+        <div class="icon-wrapper"><i class="fa-solid fa-ranking-star"></i></div>
+        <span>Top10</span>
+    </a>
 
 
     <a href="/chat.html" class="sidebar-item" id="sidebar-chat-link" data-roles="ALL">
@@ -407,8 +412,7 @@
                                 <h3 class="product-item-title">${product.title}</h3>
                                 <div class="product-item-meta-info">
                                     <div class="seller-location-info">
-                                        <span class="seller-name">卖家：${product.seller.nickname}</span> |
-                                        <span class="location">交易地点：${product.location}</span>
+                                        <span class="seller-name">商家：${product.seller.nickname}</span>
                                     </div>
                                 </div>
                                 <span class="product-item-price">¥${product.price.toFixed(2)}</span>

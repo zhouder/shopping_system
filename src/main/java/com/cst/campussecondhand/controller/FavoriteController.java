@@ -71,7 +71,6 @@ public class FavoriteController {
                 } else {
                     productMap.put("coverImage", null);
                 }
-                productMap.put("location", product.getLocation());
 
                 Map<String, Object> sellerInfo = new java.util.HashMap<>();
                 sellerInfo.put("id", product.getSeller().getId());

@@ -37,7 +37,6 @@ public class ProductController {
             @RequestParam("price") BigDecimal price,
             @RequestParam("description") String description,
             @RequestParam("category") String category,
-            @RequestParam("location") String location,
             @RequestParam("sellerId") Integer sellerId,
             @RequestParam(value = "images", required = false) MultipartFile[] images,
             HttpSession session) { // 这个方法之前已经加好了
@@ -62,7 +61,6 @@ public class ProductController {
             product.setPrice(price);
             product.setDescription(description);
             product.setCategory(category);
-            product.setLocation(location);
             Product createdProduct = productService.createProduct(product, sellerId, images);
             return ResponseEntity.ok(createdProduct);
         } catch (RuntimeException e) {
@@ -102,7 +100,7 @@ public class ProductController {
             } else {
                 productMap.put("coverImage", null);
             }
-            productMap.put("location", product.getLocation());
+
             productMap.put("category", product.getCategory());
 
             Map<String, Object> sellerInfo = new java.util.HashMap<>();
@@ -131,7 +129,7 @@ public class ProductController {
             productMap.put("price", product.getPrice());
             productMap.put("description", product.getDescription());
             productMap.put("imageUrls", product.getImageUrls() != null ? product.getImageUrls().split(",") : new String[0]);
-            productMap.put("location", product.getLocation());
+
             productMap.put("category", product.getCategory());
             productMap.put("createdTime", product.getCreatedTime());
             productMap.put("sales", product.getSales());
@@ -188,7 +186,6 @@ public class ProductController {
             @RequestParam("price") String priceString,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam("category") String category,
-            @RequestParam("location") String location,
             @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
             @RequestParam(value = "newImages", required = false) MultipartFile[] newImages,
             HttpSession session) {
@@ -224,7 +221,6 @@ public class ProductController {
             productDetails.setPrice(price);
             productDetails.setDescription(description);
             productDetails.setCategory(category);
-            productDetails.setLocation(location);
 
             Product updatedProduct = productService.updateProduct(id, productDetails, existingImageUrls, newImages);
             return ResponseEntity.ok(updatedProduct);
