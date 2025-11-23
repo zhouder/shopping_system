@@ -6,6 +6,7 @@ import com.cst.shopping_system.repository.FavoriteRepository; // 确保导入
 import com.cst.shopping_system.service.ProductService;
 import jakarta.servlet.http.HttpSession; // 确保导入
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,31 +73,41 @@ public class ProductController {
     }
 
     /**
-     * 处理获取所有商品的GET请求，支持搜索、筛选和排序
+     * 处理获取所有商品的GET请求，支持搜索、多分类筛选、排序和分页
      */
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllProducts(
+    public ResponseEntity<Map<String, Object>> getAllProducts(
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "category", required = false, defaultValue = "all") String category,
+            @RequestParam(value = "category", required = false) List<String> categories, // 改为 List
             @RequestParam(value = "sortBy", required = false, defaultValue = "latest") String sortBy,
-            HttpSession session) { // <--- 错误修正：在这里添加 HttpSession session 参数
+            @RequestParam(value = "page", defaultValue = "0") int page, // 新增分页参数
+            @RequestParam(value = "size", defaultValue = "20") int size, // 默认每页20条
+            HttpSession session) {
 
-        List<Product> products = productService.findProducts(keyword, category, sortBy);
         User loggedInUser = (User) session.getAttribute("loggedInUser");
 
-        List<Map<String, Object>> productsResponse = products.stream().map(product -> {
+        // 处理 "all" 的情况：如果包含 "all" 或者列表为空，视为全选
+        if (categories != null && (categories.contains("all") || categories.isEmpty())) {
+            categories = null;
+        }
+
+        // 调用 Service 获取分页结果
+        Page<Product> productPage = productService.findProducts(keyword, categories, sortBy, page, size);
+
+        List<Map<String, Object>> productsResponse = productPage.getContent().stream().map(product -> {
             Map<String, Object> productMap = new java.util.HashMap<>();
             productMap.put("id", product.getId());
             productMap.put("title", product.getTitle());
             productMap.put("price", product.getPrice());
             productMap.put("sales", product.getSales());
-            productMap.put("favoriteCount", product.getFavoriteCount());
+            productMap.put("stock", product.getStock()); // 之前让你加的库存字段
 
             boolean isFavorited = false;
             if (loggedInUser != null) {
                 isFavorited = favoriteRepository.existsByUserAndProduct(loggedInUser, product);
             }
             productMap.put("isFavorited", isFavorited);
+            productMap.put("favoriteCount", product.getFavoriteCount()); // 之前让你加的收藏数字段
 
             if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
                 productMap.put("coverImage", product.getImageUrls().split(",")[0]);
@@ -114,7 +125,14 @@ public class ProductController {
             return productMap;
         }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(productsResponse);
+        // 构建返回结果，包含分页元数据
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("products", productsResponse);
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+
+        return ResponseEntity.ok(response);
     }
 
     /**

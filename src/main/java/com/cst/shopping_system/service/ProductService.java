@@ -6,6 +6,9 @@ import com.cst.shopping_system.repository.ProductRepository;
 import com.cst.shopping_system.repository.UserRepository;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -84,17 +87,20 @@ public class ProductService {
     }
 
     /**
-     * 搜索、筛选和排序
+     * 搜索、多选筛选、排序和分页
      */
-    public List<Product> findProducts(String keyword, String category, String sortBy) {
+    public Page<Product> findProducts(String keyword, List<String> categories, String sortBy, int page, int size) {
         // 排序
         Sort sort = switch (sortBy) {
             case "price-asc" -> Sort.by(Sort.Direction.ASC, "price");
             case "price-desc" -> Sort.by(Sort.Direction.DESC, "price");
-            case "sales" -> Sort.by(Sort.Direction.DESC, "sales"); // 按销量降序
+            case "sales" -> Sort.by(Sort.Direction.DESC, "sales");
             case "favorites" -> Sort.by(Sort.Direction.DESC, "favoriteCount");
-            default -> Sort.by(Sort.Direction.DESC, "createdTime"); // 默认按最新发布
+            default -> Sort.by(Sort.Direction.DESC, "createdTime");
         };
+
+        // 分页请求
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<Product> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -106,14 +112,16 @@ public class ProductService {
                 predicates.add(criteriaBuilder.or(titleLike, descriptionLike));
             }
 
-            // 品类筛选
-            if (StringUtils.hasText(category) && !"all".equalsIgnoreCase(category)) {
-                predicates.add(criteriaBuilder.equal(root.get("category"), category));
+            // 多品类筛选 (使用 IN 语句)
+            if (categories != null && !categories.isEmpty()) {
+                predicates.add(root.get("category").in(categories));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-        return productRepository.findAll(spec, sort);
+
+        // 返回分页结果
+        return productRepository.findAll(spec, pageable);
     }
 
     // 新增：根据卖家ID查找其所有商品
