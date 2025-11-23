@@ -4,137 +4,337 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>最受欢迎商品 · Top10</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        :root{
-            --bg:#f6f7fb;
-            --card:#ffffff;
-            --text:#1f2328;
-            --sub:#6b7280;
-            --blue:#2563eb;
-            --blue-weak:#e8efff;
-            --border:#e9ecf2;
-            --radius:18px;
-            --shadow:0 10px 30px rgba(12,18,36,.06);
+        :root {
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --text-sub: #888;
+            --primary: #007bff;
+            --gold: linear-gradient(135deg, #ffd700, #ffaa00);
+            --silver: linear-gradient(135deg, #e0e0e0, #b0b0b0);
+            --bronze: linear-gradient(135deg, #cd7f32, #a0522d);
+            --default-rank: #e9ecef;
+            --default-rank-text: #666;
         }
-        *{box-sizing:border-box}
-        body{margin:0;background:var(--bg);color:var(--text);
-            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
-        .wrap{max-width:980px;margin:28px auto;padding:0 16px}
-        .header{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:14px}
-        .title{font-size:26px;font-weight:800;letter-spacing:.3px}
-        .sub{color:var(--sub);font-size:14px}
-        .btn{border:1px solid var(--blue);color:var(--blue);background:#fff;
-            border-radius:999px;padding:8px 14px;cursor:pointer;text-decoration:none}
-        .btn:hover{background:var(--blue);color:#fff}
 
-        .card{background:var(--card);border:1px solid var(--border);
-            border-radius:var(--radius);box-shadow:var(--shadow)}
-        .section{padding:12px 14px}
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+        }
 
-        /* 排行榜 */
-        .list{list-style:none;margin:0;padding:6px 10px;display:flex;flex-direction:column;gap:8px}
-        .row{display:grid;grid-template-columns:48px 1fr 120px 86px;
-            align-items:center;gap:14px;padding:10px 10px;border-radius:14px;
-            transition:transform .15s ease, background .15s ease}
-        .row:hover{background:#fafcff;transform:translateY(-1px)}
-        .rank{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;
-            font-weight:700;color:#fff;background:#9ca3af}
-        .rank-1{background:linear-gradient(135deg,#ffb400,#ff922b)}   /* 🥇 */
-        .rank-2{background:linear-gradient(135deg,#a1a1aa,#c7c7d1)}   /* 🥈 */
-        .rank-3{background:linear-gradient(135deg,#d97706,#f59e0b)}   /* 🥉 */
+        /* 返回按钮 (统一风格) */
+        .back-to-home {
+            position: fixed;
+            top: 40px; left: 50px;
+            width: 50px; height: 50px;
+            background-color: #fff; color: #333;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 20px; text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s; z-index: 999;
+        }
+        .back-to-home:hover { transform: scale(1.1); }
 
-        .title-link{color:var(--text);text-decoration:none;font-weight:700}
-        .title-link:hover{color:var(--blue)}
-        .meta{display:flex;align-items:center;gap:8px;overflow:hidden}
-        .badge{font-size:12px;background:var(--blue-weak);color:#2459c5;border:1px solid #dbe8ff;
-            border-radius:999px;padding:2px 10px;white-space:nowrap}
-        .price{color:var(--sub);font-variant-numeric:tabular-nums}
+        /* 主容器 */
+        .wrap {
+            max-width: 960px;
+            margin: 40px auto;
+        }
 
-        .bar{height:12px;background:#eef2ff;border-radius:999px;overflow:hidden}
-        .fill{height:100%;background:linear-gradient(90deg,#3b82f6 0%, #2563eb 100%);
-            width:0;border-radius:999px;transform-origin:left center;transition:width .6s cubic-bezier(.2,.6,.2,1)}
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .sub {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+        }
 
-        .num{font-weight:700;text-align:right; font-variant-numeric: tabular-nums}
+        /* 卡片区域 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 20px 30px;
+            overflow: hidden;
+        }
 
-        /* 顶部说明 */
-        .hint{padding:0 18px 12px;color:var(--sub);font-size:12px}
+        /* 列表 */
+        .list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-        @media (max-width:680px){
-            .row{grid-template-columns:36px 1fr 70px 60px}
-            .badge{display:none}
+        /* 单行样式 */
+        .row {
+            display: grid;
+            grid-template-columns: 60px 1fr 120px 180px;
+            align-items: center;
+            padding: 15px 20px;
+            border-radius: 12px;
+            background-color: #fff;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .row:hover {
+            background-color: #f8faff;
+            border-color: #eef2ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        /* 排名徽章 */
+        .rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .rank-1 { background: var(--gold); font-size: 1.2rem; }
+        .rank-2 { background: var(--silver); }
+        .rank-3 { background: var(--bronze); }
+        .rank-other {
+            background: var(--default-rank);
+            color: var(--default-rank-text);
+            box-shadow: none;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* 商品信息 */
+        .meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-right: 20px;
+        }
+        .title-link {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+        }
+        .title-link:hover { color: var(--primary); }
+
+        /* 分类标签 */
+        .badge {
+            font-size: 0.75rem;
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 3px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        /* 价格 */
+        .price {
+            font-weight: bold;
+            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* 销量条区域 */
+        .sales-col {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .bar-track {
+            flex-grow: 1;
+            height: 8px;
+            background: #f1f3f5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            width: 0;
+            border-radius: 4px;
+            transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .num {
+            width: 40px;
+            text-align: right;
+            font-weight: 700;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        /* 底部说明 */
+        .footer-hint {
+            margin-top: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .wrap { margin: 20px 10px; }
+            .row {
+                grid-template-columns: 40px 1fr;
+                gap: 8px;
+                padding: 12px;
+            }
+            .price, .sales-col { display: none; } /* 极简模式：手机上只看排名和名字 */
+            .badge { display: none; }
         }
     </style>
 </head>
 <body>
+
+<a href="/index.html" class="back-to-home">
+    <i class="fa-solid fa-arrow-left"></i>
+</a>
+
 <div class="wrap">
     <div class="header">
-        <div>
-            <div class="title">最受欢迎商品 · Top10</div>
-            <div class="sub">按销量从高到低（点击商品名可跳转详情）</div>
+        <div class="title">
+            <i class="fa-solid fa-trophy" style="color: #ffb400;"></i>
+            最受欢迎商品 · Top10
         </div>
-        <a class="btn" href="/index.html">返回首页</a>
+        <div class="sub">实时销量排行榜，数据自动更新</div>
     </div>
 
-    <div class="card section">
-        <ul class="list" id="list"></ul>
-        <div class="hint">注：蓝条长度按“销量 / Top10 最大销量”线性缩放。</div>
+    <div class="card">
+        <ul class="list" id="list">
+            <p style="text-align:center; color:#888; padding:20px;">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> 正在加载排行榜...
+            </p>
+        </ul>
+        <div class="footer-hint">
+            注：蓝色进度条长度根据“当前销量 / Top10最大销量”比例显示
+        </div>
     </div>
 </div>
 
 <script>
-    async function api(u){const r=await fetch(u,{credentials:'include'});if(!r.ok)throw new Error(await r.text());return r.json();}
-    function money(n){return Number(n).toLocaleString('zh-CN',{maximumFractionDigits:2});}
+    // 1. 分类映射字典：让前端显示更友好
+    const CATEGORY_MAP = {
+        'electronics': '数码电子',
+        'books': '书籍教材',
+        'daily_necessities': '生活日用',
+        'stationery': '文具用品',
+        'sports': '体育器材',
+        'clothing': '衣物鞋帽',
+        'other': '其他'
+    };
 
-    (async ()=>{
-        const data = await api('/api/reports/top10'); // [{id,title,categoryName,price,sales},...]
-        const max = Math.max(1, ...data.map(d=>d.sales));
-        const list = document.getElementById('list');
-        list.innerHTML = '';
+    async function api(u){
+        const r = await fetch(u,{credentials:'include'});
+        if(!r.ok) throw new Error(await r.text());
+        return r.json();
+    }
 
-        data.forEach((d,i)=>{
-            const li = document.createElement('li');
-            li.className = 'row';
+    function formatMoney(n) {
+        return Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-            const rank = document.createElement('div');
-            rank.className = `rank rank-${i+1}`;
-            rank.textContent = i+1;
+    (async () => {
+        try {
+            const data = await api('/api/reports/top10');
+            const list = document.getElementById('list');
+            list.innerHTML = '';
 
-            const meta = document.createElement('div'); meta.className='meta';
-            const title = document.createElement('a');
-            title.className='title-link';
-            title.href = `/product-detail.html?id=${d.id}&from=top10`;
-            title.textContent = d.title;
-            const badge = document.createElement('span');
-            badge.className='badge';
-            badge.textContent = d.categoryName || '未分类';
-            meta.append(title,badge);
+            if (!data || data.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">暂无销售数据</div>';
+                return;
+            }
 
-            const price = document.createElement('div');
-            price.className='price';
-            price.textContent = '¥ ' + money(d.price);
+            // 计算最大值用于进度条缩放
+            const maxSales = Math.max(1, ...data.map(d => d.sales));
 
-            const right = document.createElement('div');
-            right.style.display='grid';
-            right.style.gridTemplateColumns='1fr 48px';
-            right.style.alignItems='center';
-            right.style.gap='10px';
+            data.forEach((d, i) => {
+                const li = document.createElement('li');
+                li.className = 'row';
 
-            const bar = document.createElement('div'); bar.className='bar';
-            const fill = document.createElement('div'); fill.className='fill';
-            // 动画：稍后再赋值，形成入场动画
-            requestAnimationFrame(()=>{ fill.style.width = (d.sales/max*100).toFixed(2)+'%'; });
-            bar.append(fill);
+                // 1. 排名 (前三名特殊样式)
+                const rankNum = i + 1;
+                let rankClass = 'rank-other';
+                if (rankNum === 1) rankClass = 'rank-1';
+                else if (rankNum === 2) rankClass = 'rank-2';
+                else if (rankNum === 3) rankClass = 'rank-3';
 
-            const num = document.createElement('div'); num.className='num'; num.textContent = d.sales;
+                const rankDiv = `<div class="rank ${rankClass}">${rankNum}</div>`;
 
-            right.append(bar,num);
-            li.append(rank, meta, price, right);
-            list.appendChild(li);
-        });
-    })().catch(e=>{
-        document.querySelector('.wrap').insertAdjacentHTML('beforeend',
-            `<p style="color:#d33;margin-top:12px;">加载失败：${e.message}</p>`);
-    });
+                // 2. 标题 + 标签 (汉化处理)
+                // 后端返回的可能是英文 code，也可能是中文 name (取决于视图)
+                // 我们尝试用字典翻译，如果翻译不到就用原值
+                let catName = d.categoryName || '未分类';
+                if (CATEGORY_MAP[catName]) {
+                    catName = CATEGORY_MAP[catName];
+                }
+
+                const metaDiv = `
+                    <div class="meta">
+                        <a href="/product-detail.html?id=${d.id}&from=top10" class="title-link" title="${d.title}">${d.title}</a>
+                        <span class="badge">${catName}</span>
+                    </div>
+                `;
+
+                // 3. 价格
+                const priceDiv = `<div class="price">¥ ${formatMoney(d.price)}</div>`;
+
+                // 4. 销量条
+                const percent = (d.sales / maxSales * 100).toFixed(1) + '%';
+                const salesDiv = `
+                    <div class="sales-col">
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: 0%" data-width="${percent}"></div>
+                        </div>
+                        <div class="num">${d.sales}</div>
+                    </div>
+                `;
+
+                li.innerHTML = rankDiv + metaDiv + priceDiv + salesDiv;
+                list.appendChild(li);
+            });
+
+            // 触发动画：稍作延迟让 CSS transition 生效
+            requestAnimationFrame(() => {
+                document.querySelectorAll('.bar-fill').forEach(el => {
+                    el.style.width = el.getAttribute('data-width');
+                });
+            });
+
+        } catch (e) {
+            document.getElementById('list').innerHTML =
+                `<p style="color:#dc3545; text-align:center; margin-top:20px;">加载失败：${e.message}</p>`;
+        }
+    })();
 </script>
 </body>
 </html>

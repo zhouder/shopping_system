@@ -173,7 +173,15 @@
             background-color: #ffc107;
             color: white;
         }
-
+        .cart-btn {
+            background-color: #ff5722; /* 使用醒目的橙红色 */
+            color: white;
+            flex-grow: 1; /* 让它和联系商家按钮一样撑满剩余空间 */
+            justify-content: center; /* 文字图标居中 */
+        }
+        .cart-btn:hover {
+            background-color: #e64a19; /* 悬停加深 */
+        }
         #loading-message {
             text-align: center;
             font-size: 1.2rem;
@@ -265,7 +273,10 @@
                 <i class="fa-regular fa-star"></i>
                 <span id="fav-text">收藏</span>
             </button>
-            <button id="addToCartBtn" class="btn">加入购物车</button>
+            <button class="action-btn cart-btn" id="addToCartBtn">
+                <i class="fa-solid fa-cart-plus"></i>
+                <span>加入购物车</span>
+            </button>
 
         </div>
     </div>

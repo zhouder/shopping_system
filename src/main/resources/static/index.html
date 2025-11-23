@@ -8,194 +8,273 @@
     <style>
         :root {
             --primary-color: #007bff;
-            --light-gray: #f4f7f6;
-            --border-color: #e9e9e9;
-            --text-color: #333;
-            --text-color-light: #888;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --text-sub: #888;
             --price-color: #e74c3c;
-            --favorite-color: #ffc107;
             --right-sidebar-width: 120px;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--light-gray);
+            background-color: var(--bg-color);
             margin: 0;
             padding-right: var(--right-sidebar-width);
-            color: var(--text-color);
+            color: var(--text-main);
         }
+
         .page-container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
+
+        /* 1. 头部导航栏 */
         .header-container {
-            padding: 15px 25px;
-            background-color: #fff;
-            border-bottom: 1px solid var(--border-color);
+            padding: 15px 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 1000;
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: 240px 1fr 100px; /* 调整左侧宽度以容纳更长的标题 */
             align-items: center;
-            gap: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
+
         .header-title {
-            grid-column: 1 / 2;
-            justify-self: start;
-            font-size: 1.8rem;
-            font-weight: bold;
+            font-size: 1.6rem;
+            font-weight: 800;
             margin: 0;
             white-space: nowrap;
-            margin-left: 60px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
         .search-and-filters {
-            grid-column: 2 / 3;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            align-items: center; /* 1. 让内部元素（搜索框、按钮）左对齐 */
+            gap: 12px;
+            max-width: 700px;        /* 稍微缩小一点最大宽度，显得更精致 */
+            margin-left: 50px;       /* 2. 给一个固定的左边距，让它靠近标题，不再跑去屏幕中间 */
+            width: 100%;
         }
+
         .search-bar {
             display: flex;
             align-items: center;
             width: 100%;
-            min-width: 600px;
-            max-width: 800px;
-            background-color: var(--light-gray);
-            border-radius: 20px;
-            padding: 8px 15px;
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
+            background-color: #f1f3f5;
+            border-radius: 30px;
+            padding: 10px 20px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
         }
-        .search-bar i { color: #999; margin-right: 10px; }
+        .search-bar:focus-within {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        .search-bar i { color: #adb5bd; margin-right: 12px; }
         .search-bar input {
             border: none;
             background: transparent;
             width: 100%;
             outline: none;
             font-size: 1rem;
+            color: var(--text-main);
         }
+
         .filter-buttons-wrapper {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            position: relative;
+            gap: 10px;
         }
+
         .filter-btn-container { position: relative; }
         .filter-btn {
             background: #fff;
-            border: 1px solid #ddd;
+            border: 1px solid #e9ecef;
             border-radius: 20px;
-            padding: 8px 15px;
+            padding: 6px 16px;
             cursor: pointer;
             font-size: 0.9rem;
-            white-space: nowrap;
+            color: #495057;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .filter-btn:hover { background-color: #f8f8f8; }
+        .filter-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: var(--primary-color);
+        }
+
+        /* 下拉菜单样式 */
         .dropdown-menu {
             position: absolute;
-            top: calc(100% + 5px);
+            top: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%);
             background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
-            padding: 8px 0;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            border: 1px solid #f0f0f0;
+            padding: 8px;
             z-index: 1001;
             display: none;
-            min-width: 150px;
+            min-width: 160px;
             opacity: 0;
-            transition: opacity 0.2s, transform 0.2s;
-            transform-origin: top center;
+            transition: opacity 0.2s;
         }
         .dropdown-menu.show { display: block; opacity: 1; }
         .dropdown-item {
-            padding: 10px 20px;
+            padding: 10px 16px;
             cursor: pointer;
             font-size: 0.9rem;
-            white-space: nowrap;
+            border-radius: 8px;
+            color: #333;
+            transition: background 0.2s;
         }
-        .dropdown-item:hover { background-color: #f8f9fa; }
-        .dropdown-item.active { font-weight: bold; color: var(--primary-color); }
+        .dropdown-item:hover { background-color: #f8f9fa; color: var(--primary-color); }
+        .dropdown-item.active { background-color: #e7f5ff; color: var(--primary-color); font-weight: 600; }
+
+        /* 2. 主内容区域 */
         .main-content {
-            padding: 20px;
+            padding: 30px;
             flex-grow: 1;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
         }
+
         .product-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
         }
+
+        /* 3. 商品卡片样式 */
+        .product-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
         .product-item {
             display: flex;
             align-items: center;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            padding: 15px;
-            gap: 20px;
+            border-radius: 16px;
+            padding: 20px;
+            gap: 25px;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
         }
+        .product-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-color: rgba(0,123,255,0.1);
+        }
+
         .product-item-image {
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             flex-shrink: 0;
-            border-radius: 8px;
+            border-radius: 12px;
             object-fit: cover;
-            background-color: var(--light-gray);
+            background-color: #f8f9fa;
+            border: 1px solid #f1f3f5;
         }
+
         .product-item-details {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            gap: 8px;
             min-width: 0;
-            gap: 6px;
         }
+
         .product-item-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 700;
             margin: 0;
+            color: #212529;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
         .product-item-meta-info {
-            font-size: 0.85rem;
-            color: var(--text-color-light);
+            font-size: 0.9rem;
+            color: var(--text-sub);
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            gap: 15px;
         }
-        .seller-location-info .seller-name { margin-right: 15px; }
+        .seller-name i { margin-right: 4px; color: #adb5bd; }
+
         .product-item-price {
-            font-size: 1.3rem;
-            font-weight: bold;
+            font-size: 1.5rem;
+            font-weight: 800;
             color: var(--price-color);
+            margin-top: 4px;
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        .product-item-favorite {
+
+        .product-item-action {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            align-self: stretch;
+            padding-left: 20px;
+            border-left: 1px solid #f1f3f5;
+            min-width: 80px;
         }
+
         .favorite-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--text-color-light);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid #e9ecef;
+            background: #fff;
+            color: #ccc;
+            font-size: 1.4rem;
             cursor: pointer;
-            padding: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            margin-bottom: 6px;
         }
-        .favorite-btn.favorited { color: var(--favorite-color); }
-        .favorite-count { font-size: 0.75rem; color: var(--text-color-light); }
+        .favorite-btn:hover {
+            background-color: #fff9db;
+            border-color: #ffec99;
+            color: #fab005;
+            transform: scale(1.1);
+        }
+        .favorite-btn.favorited {
+            background-color: #fff9db;
+            border-color: #ffec99;
+            color: #ffc107;
+        }
+        .favorite-count {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        /* 4. 侧边栏优化 (确保间距一致) */
         .right-sidebar {
             position: fixed;
             top: 0;
@@ -203,96 +282,110 @@
             width: var(--right-sidebar-width);
             height: 100%;
             background-color: #fff;
-            border-left: 1px solid var(--border-color);
+            border-left: 1px solid #e9ecef;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 25px;
-            box-shadow: -2px 0 8px rgba(0,0,0,0.05);
+            padding-top: 30px;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.02);
             z-index: 999;
             box-sizing: border-box;
         }
+
+        .sidebar-scroll {
+            width: 100%;
+            overflow-y: auto;
+            padding-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 关键点：使用统一的 gap，移除之前的分割线 */
+            gap: 20px;
+        }
+
         .sidebar-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
-            color: var(--text-color);
-            margin-bottom: 25px;
+            color: #495057;
+            transition: color 0.2s;
+            width: 100%;
         }
-        .sidebar-item .icon-wrapper {
+
+        .sidebar-item:hover { color: var(--primary-color); }
+
+        .icon-wrapper {
             position: relative;
-            width: 60px;
-            height: 60px;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
+            width: 56px;
+            height: 56px;
+            background-color: #f8f9fa;
+            border-radius: 16px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 8px;
-            font-size: 1.8rem;
-            transition: background-color 0.2s, color 0.2s;
-            overflow: hidden;
+            font-size: 1.6rem;
+            transition: all 0.2s;
+            color: #495057;
         }
+
+        .sidebar-item:hover .icon-wrapper {
+            background-color: var(--primary-color);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+        }
+
         .notification-dot {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 10px;
-            height: 10px;
-            background-color: #e74c3c;
+            top: -2px; right: -2px;
+            width: 12px; height: 12px;
+            background-color: #fa5252;
             border-radius: 50%;
             border: 2px solid #fff;
             display: none;
         }
+
         .sidebar-avatar {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
-        }
-        .sidebar-item span { font-size: 0.9rem; font-weight: 500; }
-        .sidebar-item:hover .icon-wrapper {
-            background-color: var(--primary-color);
-            color: #fff;
-            border-color: var(--primary-color);
-        }
-        .product-item-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
+            border-radius: 16px;
         }
 
-        /* 中间区域：可以上下滚动 */
-        .sidebar-scroll{
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;   /* 移动端顺滑 */
-            padding-right: 4px;                  /* 给滚动条留点空隙 */
-            flex: 1;                             /* 占据可用空间 */
-        }
+        .sidebar-item span { font-size: 0.85rem; font-weight: 600; }
+
     </style>
 </head>
 <body>
 
 <div class="page-container">
     <header class="header-container">
-        <h1 class="header-title">网上购物系统</h1>
+        <div class="header-title">
+            <i class="fa-solid fa-bag-shopping"></i> 网上购物系统
+        </div>
+
         <div class="search-and-filters">
             <div class="search-bar">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="搜索商品">
+                <input type="text" placeholder="搜索你感兴趣的宝贝...">
             </div>
             <div class="filter-buttons-wrapper">
                 <div class="filter-btn-container">
-                    <button class="filter-btn" id="sort-btn">最新发布 <i class="fa-solid fa-caret-down"></i></button>
+                    <button class="filter-btn" id="sort-btn">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i> 最新发布
+                    </button>
                     <div class="dropdown-menu" id="sort-menu">
                         <div class="dropdown-item active" data-value="latest">最新发布</div>
-                        <div class="dropdown-item" data-value="price-asc">价格升序</div>
-                        <div class="dropdown-item" data-value="price-desc">价格降序</div>
+                        <div class="dropdown-item" data-value="price-asc">价格从低到高</div>
+                        <div class="dropdown-item" data-value="price-desc">价格从高到低</div>
                         <div class="dropdown-item" data-value="favorites">最多收藏</div>
                     </div>
                 </div>
                 <div class="filter-btn-container">
-                    <button class="filter-btn" id="category-btn">全部品类 <i class="fa-solid fa-caret-down"></i></button>
+                    <button class="filter-btn" id="category-btn">
+                        <i class="fa-solid fa-layer-group"></i> 全部品类
+                    </button>
                     <div class="dropdown-menu" id="category-menu">
                         <div class="dropdown-item active" data-value="all">全部品类</div>
                         <div class="dropdown-item" data-value="electronics">数码电子</div>
@@ -306,62 +399,65 @@
                 </div>
             </div>
         </div>
+
         <div></div>
     </header>
 
     <main class="main-content">
         <div class="product-list" id="product-list-container">
-            <p id="loading-message">正在加载商品...</p>
+            <p id="loading-message" style="text-align:center; margin-top:50px; color:#888;">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> 正在加载商品...
+            </p>
         </div>
     </main>
 </div>
 
 <aside class="right-sidebar">
     <div class="sidebar-scroll">
-    <a href="/profile.html" class="sidebar-item" data-roles="ALL">
-        <div class="icon-wrapper">
-            <img src="https://placehold.co/60x60/eee/ccc?text=?" alt="用户头像" class="sidebar-avatar">
-        </div>
-        <span class="sidebar-username">个人中心</span>
-    </a>
-    <a href="/publish.html" class="sidebar-item" data-roles="ADMIN,SHOP_OWNER">
-        <div class="icon-wrapper"><i class="fa-solid fa-plus"></i></div>
-        <span>发布商品</span>
-    </a>
-    <a href="/my-products.html" class="sidebar-item" data-roles="ADMIN,SHOP_OWNER">
-        <div class="icon-wrapper"><i class="fa-solid fa-list-check"></i></div>
-        <span>管理商品</span>
-    </a>
-    <a href="/my-favorites.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
-        <div class="icon-wrapper"><i class="fa-regular fa-star"></i></div>
-        <span>我的收藏</span>
-    </a>
-    <a href="/cart.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
-        <div class="icon-wrapper"><i class="fa-solid fa-cart-shopping"></i></div>
-        <span>购物车</span>
-    </a>
-    <a href="/orders.html" class="sidebar-item" data-roles="ALL">
-        <div class="icon-wrapper"><i class="fa-solid fa-receipt"></i></div>
-        <span>我的订单</span>
-    </a>
-    <!-- 新增：Top10 -->
-    <a href="/top10.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
-        <div class="icon-wrapper"><i class="fa-solid fa-ranking-star"></i></div>
-        <span>Top10</span>
-    </a>
+        <a href="/profile.html" class="sidebar-item" data-roles="ALL">
+            <div class="icon-wrapper" style="overflow: hidden; border:none;">
+                <img src="https://placehold.co/60x60/eee/ccc?text=?" alt="用户头像" class="sidebar-avatar">
+            </div>
+            <span class="sidebar-username">个人中心</span>
+        </a>
 
+        <a href="/publish.html" class="sidebar-item" data-roles="ADMIN,SHOP_OWNER">
+            <div class="icon-wrapper"><i class="fa-solid fa-plus"></i></div>
+            <span>发布商品</span>
+        </a>
+        <a href="/my-products.html" class="sidebar-item" data-roles="ADMIN,SHOP_OWNER">
+            <div class="icon-wrapper"><i class="fa-solid fa-list-check"></i></div>
+            <span>管理商品</span>
+        </a>
 
-    <a href="/chat.html" class="sidebar-item" id="sidebar-chat-link" data-roles="ALL">
-        <div class="icon-wrapper">
-            <i class="fa-regular fa-comment-dots"></i>
-            <span class="notification-dot" id="chat-notification-dot"></span>
-        </div>
-        <span>客服</span>
-    </a>
-    <a href="/settings.html" class="sidebar-item" data-roles="ALL">
-        <div class="icon-wrapper"><i class="fa-solid fa-gear"></i></div>
-        <span>设置</span>
-    </a>
+        <a href="/my-favorites.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
+            <div class="icon-wrapper"><i class="fa-solid fa-star"></i></div>
+            <span>我的收藏</span>
+        </a>
+        <a href="/cart.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
+            <div class="icon-wrapper"><i class="fa-solid fa-cart-shopping"></i></div>
+            <span>购物车</span>
+        </a>
+        <a href="/orders.html" class="sidebar-item" data-roles="ALL">
+            <div class="icon-wrapper"><i class="fa-solid fa-receipt"></i></div>
+            <span>我的订单</span>
+        </a>
+        <a href="/top10.html" class="sidebar-item" data-roles="ADMIN,MEMBER">
+            <div class="icon-wrapper"><i class="fa-solid fa-ranking-star"></i></div>
+            <span>Top 10</span>
+        </a>
+
+        <a href="/chat.html" class="sidebar-item" id="sidebar-chat-link" data-roles="ALL">
+            <div class="icon-wrapper">
+                <i class="fa-regular fa-comment-dots"></i>
+                <span class="notification-dot" id="chat-notification-dot"></span>
+            </div>
+            <span>消息</span>
+        </a>
+        <a href="/settings.html" class="sidebar-item" data-roles="ALL">
+            <div class="icon-wrapper"><i class="fa-solid fa-gear"></i></div>
+            <span>设置</span>
+        </a>
     </div>
 </aside>
 
@@ -382,62 +478,67 @@
 
         async function fetchAndRenderProducts() {
             productListContainer.innerHTML = '';
-            loadingMessage.textContent = '正在加载商品...';
             loadingMessage.style.display = 'block';
             const url = `/api/products?keyword=${encodeURIComponent(currentKeyword)}&category=${currentCategory}&sortBy=${currentSortBy}`;
             try {
                 const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                 const products = await response.json();
-                productListContainer.innerHTML = '';
                 loadingMessage.style.display = 'none';
+                productListContainer.innerHTML = '';
+
                 if (products.length === 0) {
-                    productListContainer.innerHTML = '<p>没有找到符合条件的商品哦！</p>';
+                    productListContainer.innerHTML = `
+                        <div style="text-align:center; padding:60px 0; color:#999;">
+                            <i class="fa-solid fa-box-open" style="font-size:4rem; color:#eee; margin-bottom:20px;"></i>
+                            <p>没有找到符合条件的商品哦~</p>
+                        </div>`;
                     return;
                 }
+
                 products.forEach(product => {
                     const productLink = document.createElement('a');
                     productLink.href = `/product-detail.html?id=${product.id}`;
                     productLink.className = 'product-item-link';
-                    const coverImage = product.coverImage || 'https://placehold.co/120x120/eee/ccc?text=无图';
+
+                    const coverImage = product.coverImage || 'https://placehold.co/140x140/f8f9fa/ddd?text=无图';
                     const favoriteCount = product.favoriteCount || 0;
                     const isFavoritedClass = product.isFavorited ? 'favorited' : '';
                     const iconClass = product.isFavorited ? 'fa-solid fa-star' : 'fa-regular fa-star';
+
                     productLink.innerHTML = `
                         <div class="product-item">
                             <img src="${coverImage}" alt="${product.title}" class="product-item-image">
+
                             <div class="product-item-details">
                                 <h3 class="product-item-title">${product.title}</h3>
                                 <div class="product-item-meta-info">
-                                    <div class="seller-location-info">
-                                        <span class="seller-name">商家：${product.seller.nickname}</span>
-                                    </div>
+                                    <span class="seller-name"><i class="fa-regular fa-user"></i> ${product.seller.nickname}</span>
+                                    <span>|</span>
+                                    <span>销量 ${product.sales}</span>
                                 </div>
                                 <span class="product-item-price">¥${product.price.toFixed(2)}</span>
                             </div>
-                            <div class="product-item">
-                        <div class="product-item-favorite">
-                            <button class="favorite-btn ${isFavoritedClass}" data-product-id="${product.id}">
-                                <i class="${iconClass}"></i>
-                            </button>
-                            <span class="favorite-count">${favoriteCount}人已收藏</span>
-                        </div>
-                    </div>
+
+                            <div class="product-item-action">
+                                <button class="favorite-btn ${isFavoritedClass}" data-product-id="${product.id}">
+                                    <i class="${iconClass}"></i>
+                                </button>
+                                <span class="favorite-count">${favoriteCount}人收藏</span>
+                            </div>
                         </div>`;
                     productListContainer.appendChild(productLink);
                 });
                 setupFavoriteButtons();
             } catch (error) {
                 console.error("获取商品失败:", error);
-                loadingMessage.textContent = '加载商品失败，请稍后刷新重试。';
+                loadingMessage.innerHTML = '<p style="color:red; text-align:center;">加载商品失败，请稍后刷新重试。</p>';
             }
         }
 
         async function updateSidebarAvatar() {
             const sidebarAvatar = document.querySelector('.sidebar-avatar');
-            const sidebarUsername = document.querySelector('.sidebar-username');
             try {
                 const response = await fetch('/api/users/status');
                 if(response.ok) {
@@ -446,8 +547,7 @@
                         sidebarAvatar.src = user.avatarUrl;
                     } else {
                         const canvas = document.createElement('canvas');
-                        canvas.width = 100;
-                        canvas.height = 100;
+                        canvas.width = 100; canvas.height = 100;
                         const ctx = canvas.getContext('2d');
                         ctx.fillStyle = user.avatarBgColor || '#007bff';
                         ctx.fillRect(0, 0, 100, 100);
@@ -460,25 +560,19 @@
                         sidebarAvatar.src = canvas.toDataURL();
                     }
                 }
-            } catch (error) {
-                console.error("未能获取用户状态以更新头像:", error);
-            }
+            } catch (error) { console.error("未能获取用户状态:", error); }
         }
 
         function setupFavoriteButtons() {
-            const favoriteButtons = document.querySelectorAll('.favorite-btn');
-            favoriteButtons.forEach(button => {
+            document.querySelectorAll('.favorite-btn').forEach(button => {
                 if (button.dataset.listenerAttached) return;
                 button.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
+                    event.preventDefault(); event.stopPropagation();
                     const productId = button.dataset.productId;
                     fetch(`/api/favorites/${productId}`, { method: 'POST' })
                         .then(response => {
                             if (response.status === 401) {
-                                alert('请先登录再收藏商品！');
-                                window.location.href = '/login.html';
-                                throw new Error('未授权');
+                                alert('请先登录再收藏商品！'); window.location.href = '/login.html'; throw new Error('未授权');
                             }
                             if (!response.ok) throw new Error('操作失败');
                             return response.json();
@@ -491,19 +585,11 @@
                             const countSpan = button.nextElementSibling;
                             if (countSpan) {
                                 let currentCount = parseInt(countSpan.textContent) || 0;
-                                if (isFavorited) {
-                                    currentCount++;
-                                } else {
-                                    currentCount--;
-                                }
-                                countSpan.textContent = `${Math.max(0, currentCount)}人已收藏`;
+                                currentCount = isFavorited ? currentCount + 1 : Math.max(0, currentCount - 1);
+                                countSpan.textContent = `${currentCount}人收藏`;
                             }
                         })
-                        .catch(error => {
-                            if (error.message !== '未授权') {
-                                console.error("收藏操作失败:", error)
-                            }
-                        });
+                        .catch(error => { if(error.message !== '未授权') console.error(error); });
                 });
                 button.dataset.listenerAttached = 'true';
             });
@@ -519,15 +605,9 @@
                 const response = await fetch('/api/messages/unread-count');
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.unreadCount > 0) {
-                        chatNotificationDot.style.display = 'block';
-                    } else {
-                        chatNotificationDot.style.display = 'none';
-                    }
+                    chatNotificationDot.style.display = data.unreadCount > 0 ? 'block' : 'none';
                 }
-            } catch (error) {
-                console.error("检查未读消息失败:", error);
-            }
+            } catch (error) { console.error("检查消息失败:", error); }
         }
 
         searchInput.addEventListener('keydown', (event) => {
@@ -561,12 +641,8 @@
         setupDropdown(categoryBtn, categoryMenu, (value) => currentCategory = value);
 
         window.addEventListener('click', (event) => {
-            if (!sortMenu.contains(event.target) && !sortBtn.contains(event.target)) {
-                sortMenu.classList.remove('show');
-            }
-            if (!categoryMenu.contains(event.target) && !categoryBtn.contains(event.target)) {
-                categoryMenu.classList.remove('show');
-            }
+            if (!sortMenu.contains(event.target) && !sortBtn.contains(event.target)) sortMenu.classList.remove('show');
+            if (!categoryMenu.contains(event.target) && !categoryBtn.contains(event.target)) categoryMenu.classList.remove('show');
         });
 
         function loadData() {
@@ -575,20 +651,12 @@
             checkUnreadMessages();
         }
 
-        // 1. 首次加载
         loadData();
-
-        // 2. 监听 "pageshow" 事件：当页面从缓存中恢复时（例如点后退按钮回来），也重新加载
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                loadData();
-            }
-        });
+        window.addEventListener('pageshow', (event) => { if (event.persisted) loadData(); });
         unreadCheckInterval = setInterval(checkUnreadMessages, 5000);
     });
 
     (async () => {
-        // 默认当成 MEMBER（即便未登录也先展示“购物车/收藏”，点击会提示登录）
         let role = 'MEMBER';
         try {
             const res = await fetch('/api/users/me', { credentials: 'include' });
@@ -596,13 +664,10 @@
                 const me = await res.json();
                 role = me.role || 'MEMBER';
             }
-        } catch (e) {
-            // 未登录/接口失败都忽略，保持默认 MEMBER
-        }
+        } catch (e) {}
 
         document.querySelectorAll('.sidebar-item[data-roles]').forEach(el => {
             const list = (el.getAttribute('data-roles') || '').split(',').map(s => s.trim());
-            // 可见规则：包含当前 role，或标记了 ALL
             if (!list.includes('ALL') && !list.includes(role)) {
                 el.style.display = 'none';
             }

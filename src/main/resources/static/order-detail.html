@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .back-to-home { position: fixed; top: 40px; left: 50px; width: 50px; height: 50px; background-color: #fff; color: #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.2s; z-index: 999; }
+        .back-to-home:hover { transform: scale(1.1); }
+        .container { max-width: 900px; margin: 60px auto; }
+
+        /* 卡片通用样式 */
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 20px; }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+        /* 状态栏 */
+        .status-header { display: flex; justify-content: space-between; align-items: center; }
+        .order-id { color: #666; }
+        .status-badge { padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
+        .status-created { background: #e7f5ff; color: #007bff; }
+        .status-paid { background: #e6fcf5; color: #0ca678; }
+        .status-shipped { background: #fff3bf; color: #f08c00; }
+        .status-closed { background: #f1f3f5; color: #868e96; }
+
+        /* 地址信息 */
+        .info-row { margin-bottom: 8px; color: #555; font-size: 0.95rem; }
+        .info-label { color: #888; width: 80px; display: inline-block; }
+
+        /* 商品列表 */
+        .item-row { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f5f5f5; }
+        .item-row:last-child { border-bottom: none; }
+        .item-img { width: 70px; height: 70px; border-radius: 6px; object-fit: cover; background: #eee; margin-right: 15px; }
+        .item-info { flex: 1; }
+        .item-title { font-weight: 500; margin-bottom: 5px; display: block; color: #333; text-decoration: none; }
+        .item-meta { font-size: 0.85rem; color: #888; }
+        .item-total { font-weight: bold; color: #333; }
+
+        /* 底部合计 */
+        .summary { text-align: right; margin-top: 10px; }
+        .total-price { font-size: 1.5rem; color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<a href="/orders.html" class="back-to-home"><i class="fa-solid fa-arrow-left"></i></a>
+
+<div class="container" id="app">
+    <p style="text-align: center; color: #888;">正在加载订单详情...</p>
+</div>
+
+<script>
+    // 状态映射
+    const STATUS_MAP = {
+        'CREATED': { text: '已下单', class: 'status-created' },
+        'PAID': { text: '已支付', class: 'status-paid' },
+        'SHIPPED': { text: '运输中', class: 'status-shipped' },
+        'COMPLETED': { text: '已完成', class: 'status-paid' },
+        'CLOSED': { text: '已关闭', class: 'status-closed' }
+    };
+
+    function formatTime(iso) {
+        return new Date(iso).toLocaleString('zh-CN', { hour12:false });
+    }
+
+    async function loadDetail() {
+        const params = new URLSearchParams(location.search);
+        const id = params.get('id');
+        if (!id) { alert('参数错误'); return; }
+
+        try {
+            const res = await fetch(`/api/orders/${id}`, { credentials: 'include' });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            render(data);
+        } catch (e) {
+            document.getElementById('app').innerHTML = `<p style="text-align:center;color:red">加载失败: ${e.message}</p>`;
+        }
+    }
+
+    function render(data) {
+        const o = data.order;
+        const items = data.items;
+        const st = STATUS_MAP[o.status] || { text: o.status, class: 'status-closed' };
+
+        const itemsHtml = items.map(item => `
+            <div class="item-row">
+                <img src="${item.coverImage || 'https://placehold.co/70x70?text=NoImg'}" class="item-img">
+                <div class="item-info">
+                    <a href="/product-detail.html?id=${item.productId}" class="item-title">${item.title}</a>
+                    <div class="item-meta">单价: ¥${item.price.toFixed(2)} × ${item.quantity}</div>
+                </div>
+                <div class="item-total">¥${(item.price * item.quantity).toFixed(2)}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('app').innerHTML = `
+            <div class="card status-header">
+                <div>
+                    <div style="font-size:1.2rem; font-weight:bold; margin-bottom:4px;">订单状态</div>
+                    <span class="order-id">订单号: #${o.id}</span>
+                </div>
+                <span class="status-badge ${st.class}">${st.text}</span>
+            </div>
+
+            <div class="card">
+                <div class="card-title">配送信息</div>
+                <div class="info-row"><span class="info-label">收货地址:</span>${o.address || '未填写'}</div>
+                <div class="info-row"><span class="info-label">下单时间:</span>${formatTime(o.orderTime)}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">商品清单</div>
+                ${itemsHtml}
+                <div class="summary">
+                    实付合计：<span class="total-price">¥${o.totalAmount.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    loadDetail();
+</script>
+</body>
+</html>

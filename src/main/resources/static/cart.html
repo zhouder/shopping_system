@@ -2,37 +2,197 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <title>我的购物车</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>我的购物车</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial; margin: 24px; }
-        h1 { font-size: 20px; margin-bottom: 16px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #fafafa; }
-        .actions button { margin-right: 6px; }
-        .total { text-align: right; margin-top: 16px; font-size: 16px; }
-        .toolbar { margin-bottom: 12px; }
-        .btn { padding: 8px 12px; border: 1px solid #1677ff; background: #1677ff; color: #fff; border-radius: 4px; cursor: pointer; }
-        .btn.link { background: #fff; color: #1677ff; }
-        .num { width: 64px; }
-        .empty { padding: 32px; text-align: center; color: #888; }
-        a { color: #1677ff; text-decoration: none; }
+        /* 全局样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* 返回按钮样式 */
+        .back-to-home {
+            position: fixed;
+            top: 40px; left: 50px;
+            width: 50px; height: 50px;
+            background-color: #fff; color: #333;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 20px; text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s; z-index: 999;
+        }
+        .back-to-home:hover { transform: scale(1.1); }
+
+        /* 主容器卡片 */
+        .main-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 60px auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 30px;
+            box-sizing: border-box;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        /* 表格样式优化 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            text-align: left;
+            padding: 15px;
+            background-color: #f8f9fa;
+            color: #666;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 商品链接 */
+        .product-link {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .product-link:hover {
+            color: #007bff;
+        }
+
+        /* 数量输入框 */
+        .num-input {
+            width: 70px; /* 稍微宽一点 */
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            outline: none;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .num-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        /* 操作按钮组 */
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            margin-right: 5px;
+        }
+        .btn-delete {
+            background-color: #fff0f0;
+            color: #dc3545;
+        }
+        .btn-delete:hover {
+            background-color: #ffe0e0;
+        }
+
+        /* 底部结算区域 */
+        .cart-footer {
+            margin-top: auto; /* 推到底部 */
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 20px;
+        }
+        .total-price {
+            font-size: 1.2rem;
+            color: #333;
+        }
+        .total-amount {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .btn-checkout {
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,123,255,0.2);
+        }
+        .btn-checkout:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        .btn-checkout:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #eee;
+        }
     </style>
 </head>
 <body>
-<div class="toolbar">
-    <a class="btn link" href="/index.html">← 返回首页</a>
-</div>
 
-<h1>我的购物车</h1>
+<a href="/index.html" class="back-to-home">
+    <i class="fa-solid fa-arrow-left"></i>
+</a>
 
-<div id="cartRoot"></div>
+<div class="main-container">
+    <h1><i class="fa-solid fa-cart-shopping" style="margin-right: 10px; color: #007bff;"></i>我的购物车</h1>
 
-<div class="total" id="cartTotal"></div>
+    <div id="cartRoot">
+        <p style="text-align:center;">加载中...</p>
+    </div>
 
-<div style="text-align:right;margin-top:12px;">
-    <button class="btn" id="checkoutBtn" disabled>去结算</button>
+    <div class="cart-footer">
+        <div class="total-price">
+            合计：<span class="total-amount" id="cartTotal">¥0.00</span>
+        </div>
+        <button class="btn-checkout" id="checkoutBtn" disabled>去结算</button>
+    </div>
 </div>
 
 <script>
@@ -47,6 +207,7 @@
         return ct.includes('application/json') ? res.json() : res.text();
     }
 
+    // 辅助函数：创建带样式的元素
     function h(tag, attrs = {}, ...children) {
         const el = document.createElement(tag);
         for (const [k, v] of Object.entries(attrs)) {
@@ -62,77 +223,131 @@
     }
 
     async function loadCart() {
-        const { items, totalAmount } = await api('/api/cart-items/my');
-        const root = document.getElementById('cartRoot');
-        const totalDiv = document.getElementById('cartTotal');
-        const checkoutBtn = document.getElementById('checkoutBtn');
+        try {
+            const { items, totalAmount } = await api('/api/cart-items/my');
+            const root = document.getElementById('cartRoot');
+            const totalSpan = document.getElementById('cartTotal');
+            const checkoutBtn = document.getElementById('checkoutBtn');
 
-        root.innerHTML = '';
-        totalDiv.textContent = '';
-        checkoutBtn.disabled = !items || items.length === 0;
+            root.innerHTML = '';
+            checkoutBtn.disabled = !items || items.length === 0;
 
-        if (!items || items.length === 0) {
-            root.appendChild(h('div', { class: 'empty' }, '购物车是空的'));
-            return;
+            // 处理总价显示
+            totalSpan.textContent = '¥' + (totalAmount !== undefined ? totalAmount.toFixed(2) : '0.00');
+
+            if (!items || items.length === 0) {
+                root.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-cart-arrow-down"></i>
+                        <p>购物车空空如也，快去选购吧！</p>
+                        <a href="/index.html" style="color:#007bff; text-decoration:none;">去首页逛逛</a>
+                    </div>`;
+                return;
+            }
+
+            const table = h('table', {},
+                h('thead', {}, h('tr', {},
+                    h('th', { width: '40%' }, '商品信息'),
+                    h('th', { width: '15%' }, '单价'),
+                    h('th', { width: '20%' }, '数量'),
+                    h('th', { width: '15%' }, '小计'),
+                    h('th', { width: '10%' }, '操作')
+                )),
+                h('tbody', {}, ...items.map(item => {
+                    // 数量输入框：现在绑定了 onchange 事件
+                    const quantityInput = h('input', {
+                        type: 'number',
+                        class: 'num-input',
+                        min: '1',
+                        value: String(item.quantity),
+                        // ★★★ 修改点：当数值改变并失去焦点时，自动触发更新 ★★★
+                        onchange: async (e) => {
+                            const newVal = parseInt(e.target.value || '1', 10);
+                            if (newVal < 1) {
+                                alert('数量不能小于1');
+                                e.target.value = item.quantity; // 恢复原值
+                                return;
+                            }
+                            // 调用 API 更新
+                            try {
+                                await api(`/api/cart-items/${item.id}?quantity=${newVal}`, { method: 'PUT' });
+                                await loadCart(); // 成功后重新加载整个购物车（刷新总价和小计）
+                            } catch (err) {
+                                console.error(err);
+                                e.target.value = item.quantity; // 失败恢复原值
+                            }
+                        }
+                    });
+
+                    // 删除按钮 (图标式)
+                    const delBtn = h('button', {
+                        class: 'action-btn btn-delete',
+                        title: '删除商品'
+                    }, h('i', { class: 'fa-regular fa-trash-can' }));
+
+                    delBtn.onclick = async () => {
+                        if (confirm('确定要从购物车移除该商品吗？')) {
+                            await api(`/api/cart-items/${item.id}`, { method: 'DELETE' });
+                            await loadCart();
+                        }
+                    };
+
+                    return h('tr', {},
+                        h('td', {},
+                            h('a', {
+                                href: `/product-detail.html?id=${item.productId}`,
+                                class: 'product-link'
+                            }, item.title)
+                        ),
+                        h('td', {}, '¥' + item.price.toFixed(2)),
+                        h('td', {},
+                            // 这里去掉了 updateBtn 按钮
+                            h('div', { style: 'display:flex; align-items:center;' }, quantityInput)
+                        ),
+                        h('td', { style: 'color:#e74c3c; font-weight:bold;' }, '¥' + item.subtotal.toFixed(2)),
+                        h('td', {}, delBtn)
+                    );
+                }))
+            );
+
+            root.appendChild(table);
+        } catch (error) {
+            console.error(error);
+            document.getElementById('cartRoot').innerHTML = '<p style="color:red; text-align:center;">加载购物车失败，请稍后重试。</p>';
         }
-
-        const table = h('table', {},
-            h('thead', {}, h('tr', {},
-                h('th', {}, '商品'),
-                h('th', {}, '单价'),
-                h('th', {}, '数量'),
-                h('th', {}, '小计'),
-                h('th', {}, '操作')
-            )),
-            h('tbody', {}, ...items.map(item => {
-                const quantityInput = h('input', { type: 'number', class: 'num', min: '1', value: String(item.quantity) });
-                const updateBtn = h('button', { class: 'btn' }, '更新');
-                updateBtn.onclick = async () => {
-                    const q = parseInt(quantityInput.value || '1', 10);
-                    await api(`/api/cart-items/${item.id}?quantity=${q}`, { method: 'PUT' });
-                    await loadCart();
-                };
-                const delBtn = h('button', { class: 'btn link' }, '删除');
-                delBtn.onclick = async () => {
-                    if (confirm('确定删除该商品？')) {
-                        await api(`/api/cart-items/${item.id}`, { method: 'DELETE' });
-                        await loadCart();
-                    }
-                };
-                return h('tr', {},
-                    h('td', {}, h('a', { href: `/product-detail.html?id=${item.productId}` }, item.title)),
-                    h('td', {}, String(item.price)),
-                    h('td', {}, quantityInput),
-                    h('td', {}, String(item.subtotal)),
-                    h('td', { class: 'actions' }, updateBtn, delBtn)
-                );
-            }))
-        );
-
-        root.appendChild(table);
-        totalDiv.textContent = '合计：' + String(totalAmount);
     }
 
-    // 结算（你已按 6B 接口实现）
+    // 结算逻辑
     document.getElementById('checkoutBtn').addEventListener('click', async () => {
         try {
-            const addr = prompt('确认收货地址（可留空使用个人资料地址）：') || '';
-            const res = await fetch('/api/orders/checkout' + (addr ? ('?address=' + encodeURIComponent(addr)) : ''), {
+            const addr = prompt('请确认收货地址（留空则使用个人资料默认地址）：');
+            // 点击取消则不进行下一步
+            if (addr === null) return;
+
+            const url = '/api/orders/checkout' + (addr ? ('?address=' + encodeURIComponent(addr)) : '');
+            const res = await fetch(url, {
                 method: 'POST', credentials: 'include'
             });
+
             if (res.ok) {
                 const data = await res.json();
-                alert('下单成功，订单号：' + data.orderId);
-                location.href = '/orders.html';  // 可换成你的订单页
+                alert('下单成功！');
+                window.location.href = '/orders.html';
             } else if (res.status === 401) {
-                alert('请先登录'); location.href = '/login.html';
+                alert('登录已过期，请重新登录');
+                window.location.href = '/login.html';
             } else {
-                alert(await res.text() || '下单失败');
+                // 这里会捕获后端抛出的 RuntimeException (例如库存不足)
+                const errorMsg = await res.text();
+                alert('下单失败：' + errorMsg);
             }
-        } catch (e) { alert('网络异常，请稍后再试'); }
+        } catch (e) {
+            alert('网络异常，请稍后再试');
+            console.error(e);
+        }
     });
 
-    loadCart().catch(console.error);
+    loadCart();
 </script>
 </body>
 </html>
