@@ -83,6 +83,7 @@
         input[type="password"],
         input[type="email"],
         input[type="tel"],
+        input[type="number"],
         select,
         textarea {
             width: 100%;
@@ -221,7 +222,7 @@
         <form id="publishForm">
             <div class="form-group">
                 <label for="title">商品标题 <span class="required-star">*</span></label>
-                <input type="text" id="title" name="title" placeholder="例如：九成新自行车" required>
+                <input type="text" id="title" name="title" placeholder="例如：数据库教材" required>
             </div>
 
             <div class="form-group">
@@ -242,10 +243,13 @@
                 <label for="price">价格 (元) <span class="required-star">*</span></label>
                 <input type="text" id="price" name="price" placeholder="例如: 99.99" required pattern="^\d+(\.\d{1,2})?$">
             </div>
-
+            <div class="form-group">
+                <label for="stock">库存数量 <span class="required-star">*</span></label>
+                <input type="number" id="stock" name="stock" placeholder="例如: 100" required min="1">
+            </div>
             <div class="form-group">
                 <label for="description">商品描述 (200字以内)</label>
-                <textarea id="description" name="description" placeholder="详细描述一下您的宝贝吧..." maxlength="200"></textarea>
+                <textarea id="description" name="description" placeholder="详细描述一下商品..." maxlength="200"></textarea>
             </div>
 
             <div class="form-group">
@@ -285,6 +289,7 @@
             const formData = new FormData();
             formData.append('title', document.getElementById('title').value);
             formData.append('price', document.getElementById('price').value);
+            formData.append('stock', document.getElementById('stock').value);
             formData.append('description', document.getElementById('description').value);
             formData.append('category', document.getElementById('category').value);
             formData.append('sellerId', loggedInUser.id);

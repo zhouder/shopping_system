@@ -92,6 +92,7 @@ public class ProductService {
             case "price-asc" -> Sort.by(Sort.Direction.ASC, "price");
             case "price-desc" -> Sort.by(Sort.Direction.DESC, "price");
             case "sales" -> Sort.by(Sort.Direction.DESC, "sales"); // 按销量降序
+            case "favorites" -> Sort.by(Sort.Direction.DESC, "favoriteCount");
             default -> Sort.by(Sort.Direction.DESC, "createdTime"); // 默认按最新发布
         };
 
@@ -128,6 +129,7 @@ public class ProductService {
 
         existingProduct.setTitle(productDetails.getTitle());
         existingProduct.setPrice(productDetails.getPrice());
+        existingProduct.setStock(productDetails.getStock());
         existingProduct.setDescription(productDetails.getDescription());
         existingProduct.setCategory(productDetails.getCategory());
 

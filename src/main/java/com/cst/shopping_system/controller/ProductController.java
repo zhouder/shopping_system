@@ -35,6 +35,7 @@ public class ProductController {
     public ResponseEntity<?> createProduct(
             @RequestParam("title") String title,
             @RequestParam("price") BigDecimal price,
+            @RequestParam("stock") Integer stock,
             @RequestParam("description") String description,
             @RequestParam("category") String category,
             @RequestParam("sellerId") Integer sellerId,
@@ -60,6 +61,7 @@ public class ProductController {
             product.setTitle(title);
             product.setPrice(price);
             product.setDescription(description);
+            product.setStock(stock);
             product.setCategory(category);
             Product createdProduct = productService.createProduct(product, sellerId, images);
             return ResponseEntity.ok(createdProduct);
@@ -88,6 +90,7 @@ public class ProductController {
             productMap.put("title", product.getTitle());
             productMap.put("price", product.getPrice());
             productMap.put("sales", product.getSales());
+            productMap.put("favoriteCount", product.getFavoriteCount());
 
             boolean isFavorited = false;
             if (loggedInUser != null) {
@@ -127,12 +130,14 @@ public class ProductController {
             productMap.put("id", product.getId());
             productMap.put("title", product.getTitle());
             productMap.put("price", product.getPrice());
+            productMap.put("stock", product.getStock());
             productMap.put("description", product.getDescription());
             productMap.put("imageUrls", product.getImageUrls() != null ? product.getImageUrls().split(",") : new String[0]);
 
             productMap.put("category", product.getCategory());
             productMap.put("createdTime", product.getCreatedTime());
             productMap.put("sales", product.getSales());
+            productMap.put("favoriteCount", product.getFavoriteCount());
 
             boolean isFavorited = false;
             if (loggedInUser != null) {
@@ -167,6 +172,8 @@ public class ProductController {
             productMap.put("id", product.getId());
             productMap.put("title", product.getTitle());
             productMap.put("price", product.getPrice());
+            productMap.put("stock", product.getStock());
+            productMap.put("sales", product.getSales());
             if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
                 productMap.put("coverImage", product.getImageUrls().split(",")[0]);
             } else {
@@ -184,6 +191,7 @@ public class ProductController {
             @PathVariable Integer id,
             @RequestParam("title") String title,
             @RequestParam("price") String priceString,
+            @RequestParam("stock") Integer stock,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam("category") String category,
             @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
@@ -221,6 +229,7 @@ public class ProductController {
             productDetails.setPrice(price);
             productDetails.setDescription(description);
             productDetails.setCategory(category);
+            productDetails.setStock(stock);
 
             Product updatedProduct = productService.updateProduct(id, productDetails, existingImageUrls, newImages);
             return ResponseEntity.ok(updatedProduct);

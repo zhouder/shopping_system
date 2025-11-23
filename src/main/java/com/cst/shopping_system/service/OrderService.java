@@ -44,6 +44,12 @@ public class OrderService {
         for (CartItem ci : cartItems) {
             Product p = ci.getProduct();
             int qty = ci.getQuantity();
+            // --- 新增：库存检查 ---
+            if (p.getStock() < qty) {
+                throw new RuntimeException("商品 [" + p.getTitle() + "] 库存不足，当前仅剩 " + p.getStock() + " 件");
+            }
+            // --- 新增：扣减库存 ---
+            p.setStock(p.getStock() - qty);
             BigDecimal unitPrice = p.getPrice();
 
             OrderItem item = new OrderItem();

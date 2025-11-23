@@ -62,7 +62,7 @@ public class FavoriteController {
                 productMap.put("title", product.getTitle());
                 productMap.put("price", product.getPrice());
                 productMap.put("sales", product.getSales());
-
+                productMap.put("favoriteCount", product.getFavoriteCount());
                 // 在“我的收藏”页面，所有商品当然都是已收藏状态
                 productMap.put("isFavorited", true);
 

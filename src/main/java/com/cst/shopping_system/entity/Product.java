@@ -38,4 +38,10 @@ public class Product {
 
     @Column(name = "sales", nullable = false)
     private int sales = 0; // 商品销量
+
+    @Column(nullable = false)
+    private Integer stock = 0;
+
+    @Column(name = "favorite_count")
+    private Integer favoriteCount = 0; // 收藏数，默认0
 }

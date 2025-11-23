@@ -569,9 +569,21 @@
             }
         });
 
-        updateSidebarAvatar();
-        fetchAndRenderProducts();
-        checkUnreadMessages();
+        function loadData() {
+            updateSidebarAvatar();
+            fetchAndRenderProducts();
+            checkUnreadMessages();
+        }
+
+        // 1. 首次加载
+        loadData();
+
+        // 2. 监听 "pageshow" 事件：当页面从缓存中恢复时（例如点后退按钮回来），也重新加载
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                loadData();
+            }
+        });
         unreadCheckInterval = setInterval(checkUnreadMessages, 5000);
     });
 
