@@ -29,15 +29,15 @@
         }
         .back-to-home:hover { transform: scale(1.1); }
 
-        /* ★★★ 修改点：主容器改为大卡片风格 (与购物车一致) ★★★ */
+        /* 主容器 */
         .main-container {
             width: 100%;
             max-width: 900px;
             margin: 60px auto;
-            background-color: #fff; /* 白底 */
-            border-radius: 12px;     /* 圆角 */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* 阴影 */
-            padding: 40px;           /* 内边距 */
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 40px;
             box-sizing: border-box;
             min-height: 500px;
         }
@@ -60,19 +60,18 @@
             gap: 15px;
         }
 
-        /* ★★★ 修改点：商品项样式调整 (适应白底) ★★★ */
+        /* 商品项样式 */
         .product-item {
             display: flex;
             align-items: center;
             background: #fff;
-            border: 1px solid #eee; /* 改为边框 */
+            border: 1px solid #eee;
             border-radius: 10px;
             padding: 15px;
             gap: 20px;
             transition: all 0.2s ease;
             position: relative;
         }
-        /* 悬停效果改为边框加深和轻微浮动 */
         .product-item:hover {
             border-color: #007bff;
             box-shadow: 0 4px 12px rgba(0,123,255,0.08);
@@ -108,6 +107,8 @@
             font-weight: 600;
             margin: 0;
             color: #333;
+            display: flex;
+            align-items: center;
         }
 
         .product-item-price {
@@ -234,7 +235,19 @@
                 return;
             }
 
+            // 排序：上架(1)在前，下架(0)在后
+            products.sort((a, b) => (b.status ?? 1) - (a.status ?? 1));
+
             products.forEach(product => {
+                // 判断状态 (如果 status 未定义，默认为 1 上架)
+                const status = product.status !== undefined ? product.status : 1;
+                const isOffline = status === 0;
+
+                // 下架样式处理
+                const statusBadge = isOffline ?
+                    '<span style="background:#eee; color:#666; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-left:8px; font-weight:normal;">已下架</span>' : '';
+                const opacityStyle = isOffline ? 'opacity: 0.6; filter: grayscale(100%);' : '';
+
                 const productLink = document.createElement('a');
                 productLink.href = `/edit-product.html?id=${product.id}`;
                 productLink.className = 'product-item-link';
@@ -242,11 +255,14 @@
                 const coverImage = product.coverImage || 'https://placehold.co/120x120/eee/ccc?text=无图';
 
                 productLink.innerHTML = `
-                    <div class="product-item">
+                    <div class="product-item" style="${opacityStyle}">
                         <img src="${coverImage}" alt="${product.title}" class="product-item-image">
 
                         <div class="product-item-details">
-                            <h3 class="product-item-title">${product.title}</h3>
+                            <h3 class="product-item-title">
+                                ${product.title}
+                                ${statusBadge}
+                            </h3>
                             <span class="product-item-price">¥${product.price.toFixed(2)}</span>
                             <div class="stock-sales-info">
                                 <span><span class="info-label">库存:</span>${product.stock}</span>

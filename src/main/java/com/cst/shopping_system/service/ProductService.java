@@ -104,6 +104,7 @@ public class ProductService {
 
         Specification<Product> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("status"), 1));
 
             // 模糊查询
             if (StringUtils.hasText(keyword)) {
@@ -172,13 +173,22 @@ public class ProductService {
         return productRepository.save(existingProduct);
     }
 
-    // 新增：删除商品
-    @Transactional
+    // 修改后：逻辑下架（只是把 status 改为 0）
     public void deleteProduct(Integer productId) {
-        if (!productRepository.existsById(productId)) {
-            throw new RuntimeException("商品不存在, ID: " + productId);
-        }
-        productRepository.deleteById(productId);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("商品不存在, ID: " + productId));
+
+        product.setStatus(0); // 0 表示下架
+        productRepository.save(product); // 保存更改
+    }
+
+    // ★★★ 新增方法 ★★★
+    @Transactional
+    public void updateProductStatus(Integer productId, Integer status) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("商品不存在"));
+        product.setStatus(status);
+        productRepository.save(product);
     }
 }
 

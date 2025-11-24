@@ -44,4 +44,7 @@ public class Product {
 
     @Column(name = "favorite_count")
     private Integer favoriteCount = 0; // 收藏数，默认0
+
+    @Column(nullable = false)
+    private Integer status = 1;
 }

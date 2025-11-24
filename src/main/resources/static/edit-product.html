@@ -95,6 +95,8 @@
         .btn-save { background-color: #28a745; }
         .btn-delete { background-color: #dc3545; }
         .btn-cancel { background-color: #6c757d; text-align: center; text-decoration: none; line-height: 1.5; }
+        .btn-publish { background-color: #28a745; } /* 绿色 */
+        .btn-delete { background-color: #dc3545; }  /* 红色 */
     </style>
 </head>
 <body>
@@ -184,7 +186,7 @@
 
         <div class="button-group">
             <button type="submit" class="btn btn-save">保存修改</button>
-            <button type="button" id="delete-btn" class="btn btn-delete">下架商品</button>
+            <button type="button" id="toggle-status-btn" class="btn btn-delete">下架商品</button>
             <a href="/my-products.html" class="btn btn-cancel">取消</a>
         </div>
     </form>
@@ -200,9 +202,10 @@
         const loadingMessage = document.getElementById('loading-message');
         const formContainer = document.getElementById('form-container');
         const editForm = document.getElementById('editForm');
-        const deleteBtn = document.getElementById('delete-btn');
         const imagePreviewGrid = document.getElementById('imagePreviewGrid');
         const imageUpload = document.getElementById('imageUpload');
+        const toggleStatusBtn = document.getElementById('toggle-status-btn'); // 获取按钮
+        let currentStatus = 1; // 默认为上架状态
 
         // State for images
         let imageManager = []; // Will hold objects like { type: 'url', data: '...' } or { type: 'file', data: File }
@@ -263,6 +266,18 @@
             const response = await fetch(`/api/products/${productId}`);
             if (!response.ok) throw new Error('商品加载失败');
             const product = await response.json();
+            currentStatus = product.status; // 获取当前状态
+
+            // ★★★ 根据状态渲染按钮 ★★★
+            if (currentStatus === 0) {
+                // 如果已下架，显示“上架商品”
+                toggleStatusBtn.textContent = '上架商品';
+                toggleStatusBtn.className = 'btn btn-publish'; // 变绿
+            } else {
+                // 如果已上架，显示“下架商品”
+                toggleStatusBtn.textContent = '下架商品';
+                toggleStatusBtn.className = 'btn btn-delete'; // 变红
+            }
 
             document.getElementById('title').value = product.title;
             document.getElementById('price').value = product.price.toFixed(2);
@@ -317,19 +332,30 @@
             }
         });
 
-        // Delete button logic (remains the same)
-        deleteBtn.addEventListener('click', async () => {
-            if (!confirm('确定要下架此商品吗？该操作不可恢复。')) {
+
+        // ★★★ 修改：按钮点击事件 ★★★
+        toggleStatusBtn.addEventListener('click', async () => {
+            const newStatus = currentStatus === 1 ? 0 : 1; // 切换状态
+            const actionName = currentStatus === 1 ? '下架' : '上架';
+
+            if (!confirm(`确定要${actionName}此商品吗？`)) {
                 return;
             }
+
             try {
-                const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
-                if (!response.ok) throw new Error('下架失败');
-                alert('商品下架成功！');
-                window.location.href = '/my-products.html';
+                // 调用新接口
+                const response = await fetch(`/api/products/${productId}/status?status=${newStatus}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error('操作失败');
+
+                alert(`商品${actionName}成功！`);
+                // 刷新页面或返回列表
+                window.location.reload();
             } catch (error) {
                 console.error(error);
-                alert('下架失败，请重试。');
+                alert(`${actionName}失败，请重试。`);
             }
         });
     });

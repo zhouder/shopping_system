@@ -156,6 +156,7 @@ public class ProductController {
             productMap.put("createdTime", product.getCreatedTime());
             productMap.put("sales", product.getSales());
             productMap.put("favoriteCount", product.getFavoriteCount());
+            productMap.put("status", product.getStatus());
 
             boolean isFavorited = false;
             if (loggedInUser != null) {
@@ -190,8 +191,13 @@ public class ProductController {
             productMap.put("id", product.getId());
             productMap.put("title", product.getTitle());
             productMap.put("price", product.getPrice());
+
+            // ★★★ 必须补上这三个字段，前端才能正确显示状态和库存 ★★★
+            productMap.put("status", product.getStatus());
             productMap.put("stock", product.getStock());
             productMap.put("sales", product.getSales());
+            // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
             if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
                 productMap.put("coverImage", product.getImageUrls().split(",")[0]);
             } else {
@@ -273,6 +279,28 @@ public class ProductController {
             return ResponseEntity.ok(Collections.singletonMap("message", "商品下架成功"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", e.getMessage()));
+        }
+    }
+
+    // ★★★ 新增：切换上架/下架状态接口 ★★★
+    @PostMapping("/{id}/status")
+    public ResponseEntity<?> toggleProductStatus(@PathVariable Integer id, @RequestParam Integer status, HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", "请先登录"));
+        }
+        try {
+            Product product = productService.findProductById(id);
+            if (product.getSeller().getId() != loggedInUser.getId()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("error", "无权操作他人商品"));
+            }
+
+            // 调用 Service 更新状态
+            productService.updateProductStatus(id, status);
+
+            return ResponseEntity.ok(Collections.singletonMap("message", status == 1 ? "上架成功" : "下架成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", e.getMessage()));
         }
     }
 }
